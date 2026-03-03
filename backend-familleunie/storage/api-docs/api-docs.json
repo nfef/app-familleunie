@@ -1,0 +1,924 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Tontine Famille Unie API",
+        "description": "API Laravel pour la gestion de la tontine Famille Unie",
+        "contact": {
+            "email": "admin@familleunie.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Serveur local"
+        }
+    ],
+    "paths": {
+        "/api/admin/dashboard": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Statistiques globales du dashboard (ADMIN/TRESORIER)",
+                "operationId": "2c29ca3389addbd18db1fff0f925cfd3",
+                "responses": {
+                    "200": {
+                        "description": "Stats globales"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/contribution-types": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Liste des types de cotisations (ADMIN)",
+                "operationId": "040bc3b94e4813b67bde2b858bde51d2",
+                "responses": {
+                    "200": {
+                        "description": "Liste des types"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Créer un type de cotisation (ADMIN)",
+                "operationId": "bbef519e0d2ac063e5b2300dbee000e4",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "label",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "amount": {
+                                        "type": "integer"
+                                    },
+                                    "frequency": {
+                                        "type": "string",
+                                        "enum": [
+                                            "weekly",
+                                            "monthly"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Type créé"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/fund-types": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Liste des types de caisses (ADMIN)",
+                "operationId": "20b7ef8fc0d0800a8d7692406f7e7677",
+                "responses": {
+                    "200": {
+                        "description": "Liste des caisses"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Créer une caisse (ADMIN)",
+                "operationId": "526e25074ba8ad0ab17b876b39965130",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "label"
+                                ],
+                                "properties": {
+                                    "label": {
+                                        "type": "string"
+                                    },
+                                    "target_amount": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Caisse créée"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/members/{id}/roles": {
+            "patch": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Modifier les rôles d'un membre (ADMIN)",
+                "operationId": "bff1bf5893f0466bbb6112152f709201",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "roles"
+                                ],
+                                "properties": {
+                                    "roles": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rôles mis à jour"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Inscription d'un nouveau membre",
+                "operationId": "8a56853624e025573120a09a4c75d468",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "full_name",
+                                    "email",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "full_name": {
+                                        "type": "string",
+                                        "example": "Marie Dupont"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "marie@exemple.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+22500000000"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "secret123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Inscription réussie"
+                    },
+                    "422": {
+                        "description": "Données invalides"
+                    }
+                }
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Connexion d'un membre",
+                "operationId": "a3b306d14572d1f4bd6c064b3233e7b8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Connexion réussie"
+                    },
+                    "401": {
+                        "description": "Identifiants incorrects"
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Déconnexion",
+                "operationId": "fe8f3429cd6979b3b4517e186505f9f9",
+                "responses": {
+                    "200": {
+                        "description": "Déconnecté avec succès"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Profil de l'utilisateur connecté",
+                "operationId": "9d9bc556f927575aa492a88c28fe5908",
+                "responses": {
+                    "200": {
+                        "description": "Profil utilisateur"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/contributions/me": {
+            "get": {
+                "tags": [
+                    "Cotisations"
+                ],
+                "summary": "Contributions de l'utilisateur connecté",
+                "operationId": "f6196745f961ff24a8914ec75b21f388",
+                "responses": {
+                    "200": {
+                        "description": "Historique des cotisations"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/contributions/summary": {
+            "get": {
+                "tags": [
+                    "Cotisations"
+                ],
+                "summary": "Résumé des cotisations par réunion",
+                "operationId": "29190f047fa7c86b537bcd907202909f",
+                "responses": {
+                    "200": {
+                        "description": "Résumé par réunion"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/contributions": {
+            "post": {
+                "tags": [
+                    "Cotisations"
+                ],
+                "summary": "Enregistrer une cotisation (ADMIN/TRESORIER)",
+                "operationId": "ca7fd6ea7d3b77317b7be79b4fd901f2",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id",
+                                    "contribution_type_id",
+                                    "meeting_id",
+                                    "parts"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "type": "integer"
+                                    },
+                                    "contribution_type_id": {
+                                        "type": "integer"
+                                    },
+                                    "meeting_id": {
+                                        "type": "integer"
+                                    },
+                                    "parts": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Cotisation enregistrée"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/fund-entries": {
+            "post": {
+                "tags": [
+                    "Cotisations"
+                ],
+                "summary": "Enregistrer un dépôt dans une caisse (ADMIN/TRESORIER/COMMISSAIRE)",
+                "operationId": "043642f99642cc1492bf9ec40cf28fd0",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "fund_type_id",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "fund_type_id": {
+                                        "type": "integer"
+                                    },
+                                    "amount": {
+                                        "type": "integer"
+                                    },
+                                    "meeting_id": {
+                                        "type": "integer"
+                                    },
+                                    "direction": {
+                                        "type": "string",
+                                        "enum": [
+                                            "in",
+                                            "out"
+                                        ]
+                                    },
+                                    "note": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Dépôt enregistré"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/events": {
+            "get": {
+                "tags": [
+                    "Événements"
+                ],
+                "summary": "Liste des événements familiaux",
+                "operationId": "7058ab7c89d20c752b6afd6d808f6526",
+                "responses": {
+                    "200": {
+                        "description": "Liste des événements"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Événements"
+                ],
+                "summary": "Déclarer un événement",
+                "operationId": "508895e03d7f10edac84357084c87b20",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "event_type_id",
+                                    "occurred_on"
+                                ],
+                                "properties": {
+                                    "event_type_id": {
+                                        "type": "integer"
+                                    },
+                                    "occurred_on": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "custom_amount": {
+                                        "type": "integer"
+                                    },
+                                    "note": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Événement créé"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/event-types": {
+            "get": {
+                "tags": [
+                    "Événements"
+                ],
+                "summary": "Types d'événements",
+                "operationId": "dd2fbfaf0d7dc4f3aaa80157cda8e762",
+                "responses": {
+                    "200": {
+                        "description": "Liste des types"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/event-contributions": {
+            "post": {
+                "tags": [
+                    "Événements"
+                ],
+                "summary": "Enregistrer une contribution pour un événement",
+                "operationId": "157dd456f2331b6c42c097e606bf19df",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "event_id",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "event_id": {
+                                        "type": "integer"
+                                    },
+                                    "amount": {
+                                        "type": "integer"
+                                    },
+                                    "contributor_id": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Contribution enregistrée"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/meetings": {
+            "get": {
+                "tags": [
+                    "Réunions"
+                ],
+                "summary": "Liste des réunions",
+                "operationId": "3cc686a730c9361cbd5c74c72e1af7c7",
+                "responses": {
+                    "200": {
+                        "description": "Liste des réunions"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Réunions"
+                ],
+                "summary": "Créer une réunion (ADMIN/TRESORIER)",
+                "operationId": "074c4e67b80887d3284ca8e4d0d2e9a2",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "cycle_id",
+                                    "meeting_date"
+                                ],
+                                "properties": {
+                                    "cycle_id": {
+                                        "type": "integer"
+                                    },
+                                    "meeting_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Réunion créée"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/cycles": {
+            "get": {
+                "tags": [
+                    "Réunions"
+                ],
+                "summary": "Liste des cycles",
+                "operationId": "b2a09e3736f76f38c70279ac88e6f5cd",
+                "responses": {
+                    "200": {
+                        "description": "Liste des cycles"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Réunions"
+                ],
+                "summary": "Créer un cycle (ADMIN)",
+                "operationId": "bc5eb44890f99061cde2785a78250480",
+                "responses": {
+                    "201": {
+                        "description": "Cycle créé"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/members": {
+            "get": {
+                "tags": [
+                    "Membres"
+                ],
+                "summary": "Liste de tous les membres",
+                "operationId": "20e6baf76421bba133e9048dcdbe7355",
+                "responses": {
+                    "200": {
+                        "description": "Liste des membres"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/members/{id}": {
+            "get": {
+                "tags": [
+                    "Membres"
+                ],
+                "summary": "Profil d'un membre",
+                "operationId": "80f0d8d79a63de8091cbd614c69bb185",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profil du membre"
+                    },
+                    "404": {
+                        "description": "Membre introuvable"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/profile": {
+            "put": {
+                "tags": [
+                    "Membres"
+                ],
+                "summary": "Mettre à jour le profil de l'utilisateur connecté",
+                "operationId": "61fbab6e81e16cfa398c4fcf3280b149",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "full_name": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profil mis à jour"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/payouts": {
+            "get": {
+                "tags": [
+                    "Tontine"
+                ],
+                "summary": "Liste des paiements de la tontine",
+                "operationId": "582375ab3e3dad34f30a857d95662086",
+                "responses": {
+                    "200": {
+                        "description": "Liste des payouts"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Tontine"
+                ],
+                "summary": "Planifier un paiement tontine (ADMIN/TRESORIER)",
+                "operationId": "6ce2851c4f410b27b9a25db0b01b0faf",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "beneficiary_id",
+                                    "meeting_id",
+                                    "contribution_type_id",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "beneficiary_id": {
+                                        "type": "integer"
+                                    },
+                                    "meeting_id": {
+                                        "type": "integer"
+                                    },
+                                    "contribution_type_id": {
+                                        "type": "integer"
+                                    },
+                                    "amount": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Paiement planifié"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/payouts/{id}/mark-paid": {
+            "patch": {
+                "tags": [
+                    "Tontine"
+                ],
+                "summary": "Marquer un paiement comme payé (ADMIN/TRESORIER)",
+                "operationId": "6c46e4e1809e6896bf393cb74be677c0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Statut mis à jour"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Entrez votre token Sanctum: Bearer {token}",
+                "bearerFormat": "Token",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Admin",
+            "description": "Admin"
+        },
+        {
+            "name": "Auth",
+            "description": "Auth"
+        },
+        {
+            "name": "Cotisations",
+            "description": "Cotisations"
+        },
+        {
+            "name": "Événements",
+            "description": "Événements"
+        },
+        {
+            "name": "Réunions",
+            "description": "Réunions"
+        },
+        {
+            "name": "Membres",
+            "description": "Membres"
+        },
+        {
+            "name": "Tontine",
+            "description": "Tontine"
+        }
+    ]
+}

@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens ───────────────────────────────────────────────── */
+:root {
+  --primary: #23347E;
+  --secondary: #BD89B2;
+  --bg: #F5F4FB;
+  --bg-card: #FFFFFF;
+  --ink: #1A1A2E;
+  --ink-muted: #69658F;
+  --border: #E3E1F2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* ── Base ────────────────────────────────────────────────────────── */
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg);
+  font-family: 'Inter', sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Auth input (dark pages: login / signup) ─────────────────────── */
+.auth-input {
+  @apply w-full rounded-xl border px-4 py-3 pl-11 text-sm outline-none transition-all duration-200;
+  border-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.auth-input::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.auth-input:focus {
+  border-color: var(--primary);
+  background-color: rgba(255, 255, 255, 0.10);
+  box-shadow: 0 0 0 3px rgba(35, 52, 126, 0.22);
+}
+
+/* ── App input (light pages) ─────────────────────────────────────── */
+.app-input {
+  @apply w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-200;
+  border-color: var(--border);
+  background-color: #F0EFF8;
+  color: var(--ink);
+}
+
+.app-input::placeholder {
+  color: var(--ink-muted);
+  opacity: 0.6;
+}
+
+.app-input:focus {
+  border-color: var(--primary);
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(35, 52, 126, 0.12);
+}
+
+/* ── Select ──────────────────────────────────────────────────────── */
+.app-select {
+  @apply app-input appearance-none cursor-pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2369658F' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 2.5rem;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
