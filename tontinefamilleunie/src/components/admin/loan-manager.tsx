@@ -178,7 +178,7 @@ export function LoanManager({ members, roles }: Props) {
                     </div>
 
                     <div>
-                        <label className="text-[10px] font-black uppercase tracking-widest text-ink-muted ml-1 mb-1 block">Date d'échéance</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-ink-muted ml-1 mb-1 block">Date d&apos;échéance</label>
                         <Input
                             type="date"
                             value={formData.due_date}

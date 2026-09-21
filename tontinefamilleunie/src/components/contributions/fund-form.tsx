@@ -77,7 +77,7 @@ export function FundForm({ members, fundTypes, selectedMemberId }: Props & { sel
       {/* Affichage du membre ou mode collectif */}
       <div className="bg-bg/50 p-4 rounded-2xl border-2 border-dashed border-border/60 flex items-center justify-between">
         <div className="flex flex-col gap-0.5">
-          <span className="text-[10px] font-black uppercase tracking-widest text-ink-muted">Cible de l'opération</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-ink-muted">Cible de l&apos;opération</span>
           <span className="text-sm font-bold text-ink">
             {selectedMemberName ?? 'Caisse Collective (Générale)'}
           </span>
@@ -109,7 +109,7 @@ export function FundForm({ members, fundTypes, selectedMemberId }: Props & { sel
       {/* Direction (Ajout / Retrait) */}
       <div>
         <label className="text-[10px] font-black uppercase tracking-widest text-ink-muted ml-1 mb-3 block">
-          Nature de l'opération
+          Nature de l&apos;opération
         </label>
         <div className="grid grid-cols-2 gap-4">
           <label className={clsx(

@@ -280,7 +280,7 @@ export function ContributionForm({ selectedMemberId, meetings, contributionTypes
 
       {!selectedMemberId && (
         <p className="text-center text-[10px] font-black uppercase tracking-tighter text-amber-600 animate-pulse">
-          Veuillez d'abord sélectionner un membre en haut
+          Veuillez d&apos;abord sélectionner un membre en haut
         </p>
       )}
     </form>

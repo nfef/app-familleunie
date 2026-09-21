@@ -2,6 +2,29 @@
 
 import { useState } from 'react';
 import { getMeetingReport, SessionReport as SessionReportData } from '@/lib/api';
+
+function buildFailuresReport(data: Awaited<ReturnType<typeof getMeetingReport>>): SessionReportData {
+    const report = data.report
+        .filter((item) => item.type === 'contribution')
+        .map((item, idx) => {
+            const failures = item.details
+                .filter((d) => d.status === 'failure')
+                .map((d) => ({ member_id: d.user_id, full_name: d.full_name, parts: d.parts ?? 0, amount: d.amount }));
+            return {
+                // L'API ne renvoie pas d'identifiant de type ici ; non utilisé pour l'affichage (seul idx sert de clé React).
+                contribution_type_id: idx,
+                label: item.label,
+                failures,
+                total_missing: failures.reduce((sum, f) => sum + f.amount, 0),
+            };
+        });
+
+    return {
+        meeting: data.meeting,
+        report,
+        grand_total_missing: report.reduce((sum, r) => sum + r.total_missing, 0),
+    };
+}
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileBarChart, RefreshCw, AlertTriangle, CheckCircle2 } from 'lucide-react';
@@ -21,7 +44,7 @@ export function SessionReport({ meetings }: Props) {
         setLoading(true);
         try {
             const data = await getMeetingReport(parseInt(selectedMeetingId));
-            setReport(data);
+            setReport(buildFailuresReport(data));
         } catch (err) {
             console.error(err);
         } finally {

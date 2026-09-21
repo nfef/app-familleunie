@@ -131,7 +131,7 @@ export function SubscriptionManager({ memberId, memberName, contributionTypes, o
                                             />
                                             <div>
                                                 <p className="text-xs sm:text-sm font-black uppercase tracking-tight text-ink">{s.label}</p>
-                                                <p className="text-[9px] font-bold text-ink-muted uppercase">Participation à l'activité</p>
+                                                <p className="text-[9px] font-bold text-ink-muted uppercase">Participation à l&apos;activité</p>
                                             </div>
                                         </label>
 

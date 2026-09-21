@@ -164,7 +164,7 @@ export function HistoryList() {
                         >
                             <div className="h-px w-20 bg-border/40" />
                             <p className="text-[10px] font-black text-ink-muted uppercase tracking-[0.2em]">
-                                Fin de l'historique
+                                Fin de l&apos;historique
                             </p>
                             <CheckCircle2 className="h-5 w-5 text-green-500/50" />
                         </motion.div>

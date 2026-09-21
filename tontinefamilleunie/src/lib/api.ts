@@ -212,6 +212,11 @@ export interface Failure { member_id: number; full_name: string; parts: number; 
 export interface SessionReportType { contribution_type_id: number; label: string; failures: Failure[]; total_missing: number }
 export interface SessionReport { meeting: Meeting; report: SessionReportType[]; grand_total_missing: number }
 
+// Forme réellement renvoyée par GET /api/contributions/report/{id}
+export interface MeetingReportDetail { user_id: number; full_name: string; parts?: number; amount: number; status: 'paid' | 'failure'; paid_at?: string | null }
+export interface MeetingReportItem { type: 'contribution' | 'fund'; label: string; details: MeetingReportDetail[]; stats: { paid: number; failure?: number; total?: number } }
+export interface MeetingReport { meeting: Meeting; report: MeetingReportItem[] }
+
 // ─── Meetings & Cycles ───────────────────────────────────────────────────────
 export const getCycles = () => apiFetch<Cycle[]>('/api/cycles');
 export const postCycle = (data: { label: string; start_date: string; end_date?: string | null }) =>
@@ -233,7 +238,7 @@ export const getMyFunds = (params?: { filter?: string; page?: number }) => {
     const query = params ? `?${new URLSearchParams(params as any).toString()}` : '';
     return apiFetch<PaginatedResponse<FundEntry>>(`/api/funds/me${query}`);
 };
-export const getMeetingReport = (id: number) => apiFetch<{ meeting: Meeting, report: any[] }>(`/api/contributions/report/${id}`);
+export const getMeetingReport = (id: number) => apiFetch<MeetingReport>(`/api/contributions/report/${id}`);
 export const getFinancialReportMeetings = () => apiFetch<{ id: number, meeting_date: string }[]>('/api/financial-reports');
 export const getFinancialReport = (id: number) => apiFetch<{ meeting: any, report: any[], summary: any }>(`/api/financial-reports/${id}`);
 export const postContribution = (data: { user_id: number; contribution_type_id: number; meeting_id: number; parts: number }) =>

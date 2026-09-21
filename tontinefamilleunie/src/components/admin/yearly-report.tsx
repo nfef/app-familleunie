@@ -28,7 +28,7 @@ export function YearlyReport() {
             <div className="flex items-center justify-between">
                 <div>
                     <h3 className="text-sm font-black uppercase tracking-widest text-ink">États Financiers Annuels</h3>
-                    <p className="text-[10px] font-bold text-ink-muted uppercase">Bilan consolidé de l'exercice {year}</p>
+                    <p className="text-[10px] font-bold text-ink-muted uppercase">Bilan consolidé de l&apos;exercice {year}</p>
                 </div>
                 <select
                     className="app-select h-10 w-32 text-xs font-black uppercase border-2"
