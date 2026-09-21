@@ -12,9 +12,9 @@ class ForcePasswordChange
      * Routes accessibles même quand must_change_password est true.
      */
     private array $exemptPaths = [
-        'logout',
-        'me',
-        'profile/change-password',
+        'api/logout',
+        'api/me',
+        'api/profile/change-password',
     ];
 
     public function handle(Request $request, Closure $next): Response
