@@ -34,5 +34,13 @@ class DatabaseSeeder extends Seeder
                 'is_active'  => true,
             ]);
         }
+
+        // Types de caisse par défaut
+        foreach (['Assurance', 'Fonds de caisse'] as $label) {
+            \App\Models\FundType::updateOrCreate(
+                ['label' => $label],
+                ['is_active' => true]
+            );
+        }
     }
 }

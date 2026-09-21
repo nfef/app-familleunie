@@ -23,6 +23,7 @@ class AuthController extends Controller
      *             required={"full_name","email","password","password_confirmation"},
      *             @OA\Property(property="full_name", type="string", example="Marie Dupont"),
      *             @OA\Property(property="email", type="string", format="email", example="marie@exemple.com"),
+     *             @OA\Property(property="username", type="string", example="marie"),
      *             @OA\Property(property="phone", type="string", example="+22500000000"),
      *             @OA\Property(property="password", type="string", format="password", example="secret123"),
      *             @OA\Property(property="password_confirmation", type="string", example="secret123")
@@ -37,6 +38,7 @@ class AuthController extends Controller
         $data = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
             'email'     => ['required', 'email', 'unique:users,email'],
+            'username'  => ['nullable', 'string', 'max:255', 'unique:users,username'],
             'phone'     => ['nullable', 'string', 'max:30'],
             'password'  => ['required', 'confirmed', Password::min(8)],
         ]);
@@ -44,6 +46,7 @@ class AuthController extends Controller
         $user = User::create([
             'full_name' => $data['full_name'],
             'email'     => $data['email'],
+            'username'  => $data['username'] ?? null,
             'phone'     => $data['phone'] ?? null,
             'password'  => Hash::make($data['password']),
             'roles'     => ['MEMBRE'],
@@ -60,13 +63,13 @@ class AuthController extends Controller
     /**
      * @OA\Post(
      *     path="/api/login",
-     *     summary="Connexion d'un membre",
+     *     summary="Connexion d'un membre (par email ou par login)",
      *     tags={"Auth"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"email","password"},
-     *             @OA\Property(property="email", type="string", format="email"),
+     *             required={"login","password"},
+     *             @OA\Property(property="login", type="string", description="Email ou nom d'utilisateur", example="etienne"),
      *             @OA\Property(property="password", type="string", format="password")
      *         )
      *     ),
@@ -77,13 +80,15 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'email'    => ['required', 'email'],
+            'login'    => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
-        if (!Auth::attempt(['email' => $data['email'], 'password' => $data['password']])) {
+        $field = filter_var($data['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        if (!Auth::attempt([$field => $data['login'], 'password' => $data['password']])) {
             throw ValidationException::withMessages([
-                'email' => ['Email ou mot de passe incorrect.'],
+                'login' => ['Identifiants incorrects.'],
             ]);
         }
 
@@ -167,6 +172,7 @@ class AuthController extends Controller
             'id'                   => $user->id,
             'full_name'            => $user->full_name,
             'email'                => $user->email,
+            'username'             => $user->username,
             'phone'                => $user->phone,
             'roles'                => $user->roles ?? ['MEMBRE'],
             'avatar_url'           => $user->avatar_url,

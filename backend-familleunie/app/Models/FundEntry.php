@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuditTrail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FundEntry extends Model
 {
+    use HasAuditTrail;
+
     protected $fillable = ['user_id', 'member_id', 'fund_type_id', 'meeting_id', 'amount', 'direction', 'note'];
 
     protected function casts(): array

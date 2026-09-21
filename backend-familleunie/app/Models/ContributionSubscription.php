@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuditTrail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ContributionSubscription extends Model
 {
+    use HasAuditTrail;
+
     protected $fillable = [
         'user_id', 
         'contribution_type_id', 

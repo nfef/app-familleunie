@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuditTrail;
 use Illuminate\Database\Eloquent\Model;
 
 class AssociationConfig extends Model
 {
+    use HasAuditTrail;
+
     protected $fillable = [
         'key', 'value', 'type', 'group', 'label',
     ];

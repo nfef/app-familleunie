@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuditTrail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MemberContribution extends Model
 {
+    use HasAuditTrail;
+
     protected $fillable = [
         'user_id', 'contribution_type_id', 'meeting_id', 'collection_meeting_id',
         'parts', 'unit_amount', 'total_amount', 'paid_at',

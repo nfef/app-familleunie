@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuditTrail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Meeting extends Model
 {
+    use HasAuditTrail;
+
     protected $fillable = ['cycle_id', 'meeting_date', 'notes'];
 
     protected function casts(): array

@@ -188,6 +188,7 @@ class AdminController extends Controller
      *             required={"full_name","email","roles"},
      *             @OA\Property(property="full_name", type="string"),
      *             @OA\Property(property="email", type="string"),
+     *             @OA\Property(property="username", type="string"),
      *             @OA\Property(property="phone", type="string"),
      *             @OA\Property(property="roles", type="array", @OA\Items(type="string"))
      *         )
@@ -203,23 +204,28 @@ class AdminController extends Controller
         $data = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
             'email'     => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'username'  => ['nullable', 'string', 'max:255', 'unique:users,username'],
             'phone'     => ['nullable', 'string', 'max:20'],
             'roles'     => ['required', 'array'],
             'roles.*'   => ['in:' . implode(',', $allowedRoles)],
         ]);
 
+        $temporaryPassword = \Illuminate\Support\Str::password(12);
+
         $user = User::create([
             'full_name'            => $data['full_name'],
             'email'                => $data['email'],
+            'username'             => $data['username'] ?? null,
             'phone'                => $data['phone'] ?? null,
             'roles'                => $data['roles'],
-            'password'             => \Illuminate\Support\Facades\Hash::make('password123'),
+            'password'             => \Illuminate\Support\Facades\Hash::make($temporaryPassword),
             'must_change_password' => true,
         ]);
 
         return response()->json([
-            'message' => 'Membre créé avec succès. Le mot de passe par défaut est : password123',
-            'user'    => $user
+            'message'             => 'Membre créé avec succès.',
+            'temporary_password'  => $temporaryPassword,
+            'user'                => $user,
         ], 201);
     }
 

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuditTrail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TontinePayout extends Model
 {
+    use HasAuditTrail;
+
     protected $fillable = [
         'beneficiary_id', 'meeting_id', 'contribution_type_id', 'amount', 'status', 'actual_payout_meeting_id',
     ];

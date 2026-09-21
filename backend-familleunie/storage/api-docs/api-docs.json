@@ -10,7 +10,7 @@
     },
     "servers": [
         {
-            "url": "http://localhost:8000",
+            "url": "http://my-default-host.com",
             "description": "Serveur local"
         }
     ],
@@ -98,6 +98,35 @@
                 ]
             }
         },
+        "/api/admin/contribution-types/{id}": {
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Supprimer un type de cotisation (ADMIN)",
+                "operationId": "b23242a3553ba9f0d66df93460598947",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Type supprimé"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/admin/fund-types": {
             "get": {
                 "tags": [
@@ -154,6 +183,85 @@
                 ]
             }
         },
+        "/api/admin/fund-types/{id}": {
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Supprimer une caisse (ADMIN)",
+                "operationId": "2258ae9146a0c02396c988f5dacccdba",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Caisse supprimée"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/members": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Créer un nouveau membre (ADMIN)",
+                "operationId": "5495fce87318460263ec44db907a93c7",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "full_name",
+                                    "email",
+                                    "roles"
+                                ],
+                                "properties": {
+                                    "full_name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "roles": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Membre créé"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/admin/members/{id}/roles": {
             "patch": {
                 "tags": [
@@ -194,6 +302,78 @@
                 "responses": {
                     "200": {
                         "description": "Rôles mis à jour"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/configs": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Liste des configurations de l'association",
+                "operationId": "239dc3566ce6b74f22ac09986b94679b",
+                "responses": {
+                    "200": {
+                        "description": "Liste des configs"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Mettre à jour ou créer une configuration",
+                "operationId": "07650438e1142b608eef5b49d7e2f0b6",
+                "responses": {
+                    "200": {
+                        "description": "Config mise à jour"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/meetings/{meetingId}/attendance": {
+            "get": {
+                "tags": [
+                    "Attendance"
+                ],
+                "summary": "Liste de présence pour une réunion",
+                "operationId": "002e76e09b2e27f8c76dadeb2f3cc7c5",
+                "responses": {
+                    "200": {
+                        "description": "Liste des présences"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Attendance"
+                ],
+                "summary": "Marquer la présence d'un membre",
+                "operationId": "a64f8495a6bb493642abe5adb183160a",
+                "responses": {
+                    "200": {
+                        "description": "Présence enregistrée"
                     }
                 },
                 "security": [
@@ -320,6 +500,43 @@
                 ]
             }
         },
+        "/api/profile/change-password": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Changer le mot de passe obligatoire",
+                "operationId": "a40ec259a6513d6e814beb8d77b7bc2e",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "password"
+                                ],
+                                "properties": {
+                                    "password": {
+                                        "type": "string",
+                                        "minLength": 8
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Mot de passe mis à jour"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/me": {
             "get": {
                 "tags": [
@@ -344,11 +561,54 @@
                 "tags": [
                     "Cotisations"
                 ],
-                "summary": "Contributions de l'utilisateur connecté",
+                "summary": "Contributions de l'utilisateur connecté (Paginé + Filtres)",
                 "operationId": "f6196745f961ff24a8914ec75b21f388",
+                "parameters": [
+                    {
+                        "name": "filter",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "default",
+                                "3months",
+                                "6months",
+                                "all"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Historique des cotisations"
+                        "description": "Historique des cotisations paginé"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/funds/me": {
+            "get": {
+                "tags": [
+                    "Cotisations"
+                ],
+                "summary": "Participations aux fonds de l'utilisateur connecté",
+                "operationId": "3e7e7377950ab4885b4b657fab51006f",
+                "responses": {
+                    "200": {
+                        "description": "Historique des fonds"
                     }
                 },
                 "security": [
@@ -470,6 +730,35 @@
                 "responses": {
                     "201": {
                         "description": "Dépôt enregistré"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/contributions/report/{meetingId}": {
+            "get": {
+                "tags": [
+                    "Cotisations"
+                ],
+                "summary": "Rapport des cotisations manquantes par réunion (ADMIN/TRESORIER)",
+                "operationId": "f84ed7e0bfc6a04fc923a3724333a5d7",
+                "parameters": [
+                    {
+                        "name": "meetingId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rapport des cotisations manquantes"
                     }
                 },
                 "security": [
@@ -699,6 +988,44 @@
                 ]
             }
         },
+        "/api/cycles/{id}": {
+            "patch": {
+                "tags": [
+                    "Réunions"
+                ],
+                "summary": "Modifier un cycle (ADMIN)",
+                "operationId": "b2fc6900e5fe14c820a8274aafdde4cc",
+                "responses": {
+                    "200": {
+                        "description": "Cycle modifié"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/meetings/{id}": {
+            "delete": {
+                "tags": [
+                    "Réunions"
+                ],
+                "summary": "Supprimer une réunion (ADMIN/TRESORIER)",
+                "operationId": "f2b5763066fd0526b6bcd538ff1c94c5",
+                "responses": {
+                    "200": {
+                        "description": "Réunion supprimée"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/members": {
             "get": {
                 "tags": [
@@ -777,6 +1104,40 @@
                 "responses": {
                     "200": {
                         "description": "Profil mis à jour"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/profile/avatar": {
+            "post": {
+                "tags": [
+                    "Membres"
+                ],
+                "summary": "Mettre à jour la photo de profil",
+                "operationId": "d85d178a8bf4d0096e6289cabde250c1",
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "avatar": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Avatar mis à jour"
                     }
                 },
                 "security": [
@@ -895,6 +1256,10 @@
         {
             "name": "Admin",
             "description": "Admin"
+        },
+        {
+            "name": "Attendance",
+            "description": "Attendance"
         },
         {
             "name": "Auth",

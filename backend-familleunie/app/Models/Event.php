@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuditTrail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Event extends Model
 {
+    use HasAuditTrail;
+
     protected $fillable = [
         'member_id', 'event_type_id', 'occurred_on', 'custom_amount', 'status', 'note',
     ];

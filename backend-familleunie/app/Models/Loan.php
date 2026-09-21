@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuditTrail;
 use Illuminate\Database\Eloquent\Model;
 
 class Loan extends Model
 {
+    use HasAuditTrail;
+
     protected $fillable = [
         'user_id',
         'amount',

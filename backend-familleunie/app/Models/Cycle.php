@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuditTrail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Cycle extends Model
 {
+    use HasAuditTrail;
+
     protected $fillable = ['label', 'start_date', 'end_date', 'is_active'];
 
     protected function casts(): array
