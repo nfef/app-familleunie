@@ -12,6 +12,7 @@ const schema = z
   .object({
     full_name: z.string().min(3, 'Le nom doit contenir au moins 3 caractères'),
     email: z.string().email('Adresse email invalide'),
+    username: z.string().trim().min(3, 'Le login doit contenir au moins 3 caractères').optional().or(z.literal('')),
     phone: z.string().min(8, 'Numéro de téléphone invalide'),
     password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
     confirm: z.string().min(8, 'Veuillez confirmer votre mot de passe'),
@@ -37,11 +38,11 @@ export function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
 
-  const onSubmit = handleSubmit(async ({ confirm, ...values }) => {
+  const onSubmit = handleSubmit(async ({ confirm, username, ...values }) => {
     setLoading(true);
     setMessage(null);
     try {
-      await apiRegister({ ...values, password_confirmation: confirm });
+      await apiRegister({ ...values, username: username || undefined, password_confirmation: confirm });
       router.push('/dashboard');
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Une erreur est survenue lors de l\'inscription');
@@ -77,6 +78,18 @@ export function SignupForm() {
             autoComplete="email"
           />
           {errors.email && <p className="mt-1 ml-4 text-xs text-red-500">{errors.email.message}</p>}
+        </div>
+
+        {/* Login (optionnel) */}
+        <div>
+          <InputLabel>Login (optionnel)</InputLabel>
+          <input
+            {...register('username')}
+            placeholder="Ex: etienne"
+            className="w-full rounded-full border border-border/50 bg-white px-6 py-4 text-sm text-ink outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/5"
+            autoComplete="username"
+          />
+          {errors.username && <p className="mt-1 ml-4 text-xs text-red-500">{errors.username.message}</p>}
         </div>
 
         {/* Téléphone */}

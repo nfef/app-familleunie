@@ -56,6 +56,7 @@ export interface AuthUser {
     id: number;
     full_name: string;
     email: string;
+    username?: string | null;
     phone: string | null;
     roles: string[];
     avatar_url?: string | null;
@@ -72,6 +73,7 @@ export interface AuthResponse {
 export async function register(data: {
     full_name: string;
     email: string;
+    username?: string;
     phone?: string;
     password: string;
     password_confirmation: string;
@@ -85,7 +87,7 @@ export async function register(data: {
 }
 
 export async function login(data: {
-    email: string;
+    login: string;
     password: string;
 }): Promise<AuthResponse> {
     const res = await apiFetch<AuthResponse>('/api/login', {
@@ -117,7 +119,7 @@ export async function updateProfile(data: { full_name?: string; phone?: string }
 }
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-export interface Member { id: number; full_name: string; email: string; phone: string | null; roles: string[] }
+export interface Member { id: number; full_name: string; email: string; username?: string | null; phone: string | null; roles: string[] }
 export interface Cycle { id: number; label: string; start_date: string; end_date: string | null; is_active: boolean }
 export interface Meeting { id: number; cycle_id: number; meeting_date: string; notes: string | null; cycle?: { label: string } }
 export interface ContributionType { id: number; label: string; amount: number; frequency: string; has_parts: boolean; is_mandatory: boolean; is_active: boolean }
@@ -301,8 +303,8 @@ export const deleteFundType = (id: number) =>
 export const updateMemberRoles = (id: number, roles: string[]) =>
     apiFetch(`/api/admin/members/${id}/roles`, { method: 'PATCH', body: JSON.stringify({ roles }) });
 
-export const createMember = (data: { full_name: string; email: string; phone?: string; roles: string[] }) =>
-    apiFetch<{ message: string; user: AuthUser }>('/api/admin/members', { method: 'POST', body: JSON.stringify(data) });
+export const createMember = (data: { full_name: string; email: string; username?: string; phone?: string; roles: string[] }) =>
+    apiFetch<{ message: string; temporary_password: string; user: AuthUser }>('/api/admin/members', { method: 'POST', body: JSON.stringify(data) });
 
 // ─── Attendance ──────────────────────────────────────────────────────────────
 export const getMeetingAttendance = (meetingId: number) =>

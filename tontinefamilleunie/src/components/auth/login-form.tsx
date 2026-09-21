@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { login as apiLogin } from '@/lib/api';
 
 const schema = z.object({
-  email: z.string().email('Adresse email invalide'),
+  login: z.string().min(1, 'Ce champ est requis'),
   password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
 });
 
@@ -52,17 +52,17 @@ export function LoginForm() {
     <div className="space-y-6">
       <form onSubmit={onSubmit} className="space-y-5">
 
-        {/* Email */}
+        {/* Email ou login */}
         <div>
-          <InputLabel>Email</InputLabel>
+          <InputLabel>Email ou login</InputLabel>
           <input
-            {...register('email')}
-            type="email"
-            placeholder="Entrez votre email"
+            {...register('login')}
+            type="text"
+            placeholder="Entrez votre email ou votre login"
             className="w-full rounded-full border border-border/50 bg-white px-6 py-4 text-sm text-ink outline-none transition-all placeholder:text-ink-light focus:border-primary focus:ring-4 focus:ring-primary/5"
-            autoComplete="email"
+            autoComplete="username"
           />
-          {errors.email && <p className="mt-1 ml-4 text-xs text-red-500">{errors.email.message}</p>}
+          {errors.login && <p className="mt-1 ml-4 text-xs text-red-500">{errors.login.message}</p>}
         </div>
 
         {/* Mot de passe */}

@@ -8,6 +8,7 @@ export interface AuthUser {
   id: number;
   full_name: string;
   email: string;
+  username?: string | null;
   phone: string | null;
   roles: string[];
   avatar_url?: string | null;

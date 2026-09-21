@@ -21,6 +21,7 @@ export function MemberForm() {
     const router = useRouter();
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [phone, setPhone] = useState('');
     const [selectedRoles, setSelectedRoles] = useState<string[]>(['MEMBRE']);
     const [loading, setLoading] = useState(false);
@@ -40,16 +41,21 @@ export function MemberForm() {
         setLoading(true);
 
         try {
-            await createMember({
+            const res = await createMember({
                 full_name: fullName,
                 email,
+                username: username || undefined,
                 phone: phone || undefined,
                 roles: selectedRoles
             });
-            toast.success(`Membre ${fullName} inscrit avec succès`);
+            toast.success(`Membre ${fullName} inscrit avec succès`, {
+                description: `Mot de passe temporaire (à communiquer, non récupérable ensuite) : ${res.temporary_password}`,
+                duration: 30000,
+            });
             router.refresh();
             setFullName('');
             setEmail('');
+            setUsername('');
             setPhone('');
             setSelectedRoles(['MEMBRE']);
         } catch (err) {
@@ -96,14 +102,25 @@ export function MemberForm() {
                     </div>
                     <div>
                         <label className="text-[10px] font-black uppercase tracking-widest text-ink-muted ml-1 mb-1.5 block">
-                            Téléphone (Optionnel)
+                            Login (Optionnel)
                         </label>
                         <Input
-                            value={phone}
-                            onChange={e => setPhone(e.target.value)}
-                            placeholder="+225..."
+                            value={username}
+                            onChange={e => setUsername(e.target.value)}
+                            placeholder="Ex: etienne"
                         />
                     </div>
+                </div>
+
+                <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-ink-muted ml-1 mb-1.5 block">
+                        Téléphone (Optionnel)
+                    </label>
+                    <Input
+                        value={phone}
+                        onChange={e => setPhone(e.target.value)}
+                        placeholder="+225..."
+                    />
                 </div>
 
                 <div>
