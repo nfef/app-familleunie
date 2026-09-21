@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 
 // ── Public ────────────────────────────────────────────────────────────────
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
+Route::post('/login',    [AuthController::class, 'login'])->middleware('throttle:5,1');
 
 // ── Authenticated ─────────────────────────────────────────────────────────
 Route::middleware(['auth:sanctum', 'force.password.change'])->group(function () {
