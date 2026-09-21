@@ -123,16 +123,6 @@ export function LoginForm() {
           {loading ? 'Connexion en cours…' : 'Se connecter'}
         </button>
       </form>
-
-
-
-      {/* Lien vers l'inscription */}
-      <div className="text-center text-sm font-medium">
-        <span className="text-ink-muted">Vous n&apos;avez pas de compte ? </span>
-        <Link href="/signup" className="font-bold text-ink hover:text-primary transition-colors">
-          S&apos;inscrire
-        </Link>
-      </div>
     </div>
   );
 }
