@@ -74,7 +74,21 @@ export interface FundEntry { id: number; fund_type_id: number; member_id: number
 export interface EventType { id: number; label: string; default_amount: number }
 export interface ApiEvent { id: number; member_id: number; event_type_id: number; occurred_on: string; custom_amount: number | null; status: string; note: string | null; member?: { full_name: string }; event_type?: { label: string; default_amount: number } }
 export interface Sanction { id: number; user_id: number; meeting_id: number | null; label: string; amount: number; status: 'pending' | 'paid'; paid_at: string | null; user?: { full_name: string }; meeting?: { meeting_date: string } }
-export interface Loan { id: number; user_id: number; amount: number; interest: number; due_date: string; status: 'pending' | 'paid' | 'overdue'; is_overdue: boolean; paid_at: string | null; user?: { full_name: string } }
+export interface Loan {
+  id: number;
+  user_id: number;
+  parent_loan_id: number | null;
+  contracted_at: string | null;
+  amount: number;
+  interest: number;
+  repaid_amount: number;
+  due_date: string;
+  status: 'pending' | 'paid' | 'renewed';
+  is_overdue: boolean;
+  paid_at: string | null;
+  user?: { full_name: string };
+  parent?: { id: number; amount: number; due_date: string } | null;
+}
 export interface TontinePayout { id: number; beneficiary_id: number; meeting_id: number; amount: number; status: string; created_at: string; beneficiary?: { full_name: string }; meeting?: { meeting_date: string }; contribution_type?: { label: string } }
 export interface DashboardStats { tontine_balance: number; events_balance: number; members_count: number }
 export interface Subscription { id: number; user_id: number; contribution_type_id: number; parts: number; is_active: boolean; suspension_reason: string | null; contribution_type?: ContributionType }
@@ -146,9 +160,11 @@ export const paySanction = (id: number) => apiFetch<Sanction>(`/api/sanctions/${
 
 // ─── Prêts ──────────────────────────────────────────────────────────────
 export const getLoans = () => apiFetch<Loan[]>('/api/loans');
-export const postLoan = (data: { user_id: number; amount: number; interest?: number; due_date: string }) =>
+export const postLoan = (data: { user_id: number; amount: number; interest?: number; contracted_at?: string; due_date: string }) =>
   apiFetch<Loan>('/api/loans', { method: 'POST', body: JSON.stringify(data) });
 export const payLoan = (id: number) => apiFetch<Loan>(`/api/loans/${id}/pay`, { method: 'PATCH' });
+export const renewLoan = (id: number, data: { capital_restant?: number; nouvel_interet?: number; mois?: number }) =>
+  apiFetch<{ message: string; previous_loan: Loan; renewed_loan: Loan }>(`/api/loans/${id}/renew`, { method: 'POST', body: JSON.stringify(data) });
 
 // ─── Événements ────────────────────────────────────────────────────────────
 export const getEventTypes = () => apiFetch<EventType[]>('/api/event-types');

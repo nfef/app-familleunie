@@ -41,7 +41,7 @@ export function Dashboard() {
 
   const pendingSanctions = sanctions.data?.filter((s) => s.status === 'pending').length ?? 0;
   const overdueLoans = loans.data?.filter((l) => l.is_overdue).length ?? 0;
-  const activeLoans = loans.data?.filter((l) => l.status !== 'paid').length ?? 0;
+  const activeLoans = loans.data?.filter((l) => l.status === 'pending').length ?? 0;
 
   return (
     <div className="space-y-6">
