@@ -3,34 +3,29 @@
 Liste des manques identifiés dans l'API (`backend-familleunie`) qui bloqueront certaines actions du futur back-office. Aucun de ces points n'empêche de démarrer le back-office (consultation + actions déjà supportées suffisent pour un premier périmètre), mais ils devront être traités dès que le back-office aura besoin d'éditer/supprimer/récupérer un compte.
 
 ## 1. Modifier une cotisation / un mouvement de caisse déjà enregistré
-- **État actuel** : aucune route `PATCH`/`PUT` sur `MemberContribution` ni `FundEntry` — seulement `POST` (création)
-- **À faire** : nouvelle méthode contrôleur + route `PATCH /contributions/{id}` et `PATCH /fund-entries/{id}`
-- **Statut** : non démarré
+- **Statut** : fait — `PATCH /contributions/{id}` et `PATCH /fund-entries/{id}` (`ContributionController`)
 
 ## 2. Supprimer un membre, un cycle, une sanction, un prêt
-- **État actuel** : aucune méthode `destroy()` sur ces contrôleurs (seul `MeetingController::destroy` existe)
-- **À faire** : ajouter les routes/méthodes `DELETE` correspondantes — bénéficiera automatiquement du soft delete déjà en place (`HasAuditTrail`)
-- **Statut** : non démarré
+- **Statut** : fait — `DELETE /admin/members/{id}` (avec garde-fou anti-auto-suppression), `DELETE /cycles/{id}`, `DELETE /sanctions/{id}`, `DELETE /loans/{id}` — tous en soft delete via `HasAuditTrail`
 
 ## 3. Modifier un type de cotisation / caisse existant
-- **État actuel** : `AdminController` n'a que `store`/`delete`, pas d'`update`
-- **À faire** : ajouter `PATCH /admin/contribution-types/{id}` et `PATCH /admin/fund-types/{id}`
-- **Statut** : non démarré
+- **Statut** : fait — `PATCH /admin/contribution-types/{id}` et `PATCH /admin/fund-types/{id}`
 
 ## 4. Mot de passe oublié
-- **État actuel** : aucun endpoint — `changePassword` exige déjà d'être connecté
-- **À faire** : nouveau flux (demande de réinitialisation par email + confirmation) — nécessite aussi une vraie configuration `MAIL_*` en production (actuellement vide)
-- **Statut** : non démarré
+- **Décision** : pas de flux self-service par email. En cas d'oubli, le membre contacte l'administrateur, qui régénère un mot de passe via l'action "Réinitialiser le mot de passe" du back-office (`PATCH /admin/members/{id}/reset-password`) et le communique hors plateforme.
+- **Statut** : résolu autrement (pas de développement supplémentaire prévu)
 
 ## 5. Dashboard admin plus riche
-- **État actuel** : `AdminController::dashboard` ne renvoie que 3 chiffres globaux (solde tontine, solde événements, nombre de membres)
-- **À faire** : nouvelles requêtes d'agrégation par cycle / par membre / évolution dans le temps
-- **Statut** : non démarré
+- **Statut** : fait — `AdminController::dashboard` renvoie maintenant aussi `by_cycle` (total des cotisations par cycle) et `monthly_trend` (6 derniers mois). Reste à brancher côté back-office (pas encore fait).
 
 ## 6. Liste globale des mouvements de caisse
-- **État actuel** : `GET /funds/me` ne renvoie que les mouvements du membre connecté — aucun endpoint n'existe pour lister TOUS les mouvements de caisse (tous membres confondus), utile pour un vrai suivi de caisse côté back-office
-- **À faire** : `GET /admin/fund-entries` (ADMIN/TRESORIER), avec filtres par type de caisse / période
-- **Statut** : non démarré — découvert en construisant la page "Caisses" du back-office (`backoffice-familleunie/src/pages/Funds.tsx`), actuellement limitée à afficher les types de caisse + enregistrer un mouvement, sans historique
+- **Statut** : fait — `GET /admin/fund-entries` (ADMIN/TRESORIER/COMMISSAIRE), paginé, filtrable par `fund_type_id`/`direction`/`from`/`to`. Reste à brancher côté back-office (page "Caisses" toujours limitée à afficher les types + enregistrer un mouvement, sans historique affiché).
+
+## 7. Rôles manquants (CENSEUR, PRESIDENT, FONDATEUR, VICE_PRESIDENT, SECRETAIRE_ADJOINT)
+- **Statut** : fait — `AdminController::ALLOWED_ROLES` complété, back-office mis à jour, déployé
+
+## 8. Générer un nouveau mot de passe pour un membre
+- **Statut** : fait — `PATCH /admin/members/{id}/reset-password`, action "Mot de passe" dans le back-office, déployé
 
 ---
 
