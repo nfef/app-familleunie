@@ -27,6 +27,17 @@ Liste des manques identifiés dans l'API (`backend-familleunie`) qui bloqueront 
 ## 8. Générer un nouveau mot de passe pour un membre
 - **Statut** : fait — `PATCH /admin/members/{id}/reset-password`, action "Mot de passe" dans le back-office, déployé
 
+## 9. Prêts : date d'emprunt et reconduction
+- **Statut** : fait — `contracted_at`, reconduction (`POST /loans/{id}/renew`, 2 scénarios), traçabilité `parent_loan_id`, `due_date` accepte désormais une date passée
+
+## 10. Gestion des types d'événements
+- **Statut** : fait — `POST`/`PATCH`/`DELETE /admin/event-types`, catégorie (heureux/malheureux), mode de calcul (montant fixe par membre ou enveloppe divisée par le nombre de membres avec `computed_share`)
+
+## 11. Enregistrer la contribution de chaque membre à un événement
+- **État actuel** : `POST /event-contributions` existe pour enregistrer UNE contribution, mais aucun endpoint pour lister les contributions déjà enregistrées pour un événement donné, ni d'écran back-office pour ça — impossible de suivre qui a déjà contribué à un mariage/décès et combien il reste à collecter
+- **À faire** : `GET /events/{id}` (détail avec contributions chargées) + écran back-office de saisie par membre, avec le montant pré-rempli via `computed_share`
+- **Statut** : non démarré
+
 ---
 
 ## Contexte : architecture du back-office
