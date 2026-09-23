@@ -63,8 +63,8 @@ export function Dashboard() {
           accent="secondary"
         />
         <StatTile
-          label="Membres"
-          value={stats.data ? String(stats.data.members_count) : '—'}
+          label="Membres actifs"
+          value={stats.data ? `${stats.data.active_members_count} / ${stats.data.members_count}` : '—'}
           icon={Users}
         />
         <StatTile

@@ -64,7 +64,8 @@ export interface AuthUser {
 }
 export interface AuthResponse { user: AuthUser; token: string }
 
-export interface Member { id: number; full_name: string; email: string; username?: string | null; phone: string | null; roles: string[] }
+export type MemberStatus = 'active' | 'pause' | 'exclu' | 'demissionnaire';
+export interface Member { id: number; full_name: string; email: string; username?: string | null; phone: string | null; roles: string[]; member_status?: MemberStatus; status_note?: string | null }
 export interface Cycle { id: number; label: string; start_date: string; end_date: string | null; is_active: boolean }
 export interface Meeting { id: number; cycle_id: number; meeting_date: string; notes: string | null; cycle?: { label: string } }
 export interface ContributionType { id: number; label: string; amount: number; frequency: string; has_parts: boolean; is_mandatory: boolean; is_active: boolean }
@@ -97,7 +98,7 @@ export interface Loan {
   parent?: { id: number; amount: number; due_date: string } | null;
 }
 export interface TontinePayout { id: number; beneficiary_id: number; meeting_id: number; amount: number; status: string; created_at: string; beneficiary?: { full_name: string }; meeting?: { meeting_date: string }; contribution_type?: { label: string } }
-export interface DashboardStats { tontine_balance: number; events_balance: number; members_count: number }
+export interface DashboardStats { tontine_balance: number; events_balance: number; members_count: number; active_members_count: number }
 export interface Subscription { id: number; user_id: number; contribution_type_id: number; parts: number; is_active: boolean; suspension_reason: string | null; contribution_type?: ContributionType }
 export interface YearlyReport {
   year: string;
@@ -136,6 +137,8 @@ export const updateMember = (id: number, data: { full_name?: string; email?: str
   apiFetch<{ message: string; user: Member }>(`/api/admin/members/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
 export const updateMemberRoles = (id: number, roles: string[]) =>
   apiFetch(`/api/admin/members/${id}/roles`, { method: 'PATCH', body: JSON.stringify({ roles }) });
+export const updateMemberStatus = (id: number, data: { member_status: MemberStatus; status_note?: string }) =>
+  apiFetch<{ message: string; user: Member }>(`/api/admin/members/${id}/status`, { method: 'PATCH', body: JSON.stringify(data) });
 export const resetMemberPassword = (id: number) =>
   apiFetch<{ message: string; temporary_password: string; user: Member }>(`/api/admin/members/${id}/reset-password`, { method: 'PATCH' });
 export const getMemberSubscriptions = (id: number) => apiFetch<Subscription[]>(`/api/members/${id}/subscriptions`);

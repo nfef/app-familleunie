@@ -4,8 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Copy, KeyRound, ShieldCheck, TriangleAlert, UserPlus } from 'lucide-react';
-import { createMember, getMembers, resetMemberPassword, updateMember, updateMemberRoles, ApiError, type Member } from '@/lib/api';
+import { Copy, KeyRound, ShieldCheck, TriangleAlert, UserCog, UserPlus } from 'lucide-react';
+import { createMember, getMembers, resetMemberPassword, updateMember, updateMemberRoles, updateMemberStatus, ApiError, type Member, type MemberStatus } from '@/lib/api';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Table, THead, Th, TBody, Td, EmptyState } from '@/components/ui/Table';
@@ -38,6 +38,29 @@ function RoleBadge({ role }: { role: string }) {
   return (
     <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
       {role}
+    </span>
+  );
+}
+
+const STATUS_LABELS: Record<MemberStatus, string> = {
+  active: 'Actif',
+  pause: 'En pause',
+  exclu: 'Exclu',
+  demissionnaire: 'Démissionnaire',
+};
+
+const STATUS_STYLES: Record<MemberStatus, string> = {
+  active: 'bg-green-50 text-green-700',
+  pause: 'bg-amber-50 text-amber-700',
+  exclu: 'bg-red-50 text-red-600',
+  demissionnaire: 'bg-ink/5 text-ink-muted',
+};
+
+function MemberStatusBadge({ status }: { status?: MemberStatus }) {
+  const s = status ?? 'active';
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_STYLES[s]}`}>
+      {STATUS_LABELS[s]}
     </span>
   );
 }
@@ -315,12 +338,64 @@ function ResetPasswordDialog({ member, onClose }: { member: Member | null; onClo
   );
 }
 
+function StatusDialog({ member, onClose }: { member: Member | null; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [status, setStatus] = useState<MemberStatus>(member?.member_status ?? 'active');
+  const [note, setNote] = useState(member?.status_note ?? '');
+
+  const mutation = useMutation({
+    mutationFn: () => updateMemberStatus(member!.id, { member_status: status, status_note: note || undefined }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+      toast.success('Statut mis à jour');
+      onClose();
+    },
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : 'Erreur.'),
+  });
+
+  if (!member) return null;
+
+  return (
+    <Dialog open={!!member} onClose={onClose} title={`Statut — ${member.full_name}`}>
+      <div className="space-y-4">
+        {status !== 'active' && (
+          <p className="rounded-2xl bg-amber-50 px-4 py-3 text-xs text-amber-800">
+            Un membre non actif n'est plus compté dans le calcul des enveloppes (mariage, décès…) réparties par membre.
+          </p>
+        )}
+        <div className="flex flex-wrap gap-2">
+          {(Object.keys(STATUS_LABELS) as MemberStatus[]).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setStatus(s)}
+              className={`rounded-full border-2 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wide transition-all ${
+                status === s ? 'border-primary bg-primary text-white' : 'border-border text-ink-muted hover:border-primary/40'
+              }`}
+            >
+              {STATUS_LABELS[s]}
+            </button>
+          ))}
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-ink">Note (optionnel)</label>
+          <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Raison, date de départ…" />
+        </div>
+        <Button onClick={() => mutation.mutate()} disabled={mutation.isPending} className="w-full">
+          {mutation.isPending ? 'Enregistrement…' : 'Enregistrer'}
+        </Button>
+      </div>
+    </Dialog>
+  );
+}
+
 export function Members() {
   const { data: members, isLoading } = useQuery({ queryKey: ['members'], queryFn: getMembers });
   const [createOpen, setCreateOpen] = useState(false);
   const [editingRoles, setEditingRoles] = useState<Member | null>(null);
   const [editingInfo, setEditingInfo] = useState<Member | null>(null);
   const [resettingPassword, setResettingPassword] = useState<Member | null>(null);
+  const [editingStatus, setEditingStatus] = useState<Member | null>(null);
 
   return (
     <div>
@@ -341,6 +416,7 @@ export function Members() {
             <Th>Nom</Th>
             <Th>Email / Login</Th>
             <Th>Téléphone</Th>
+            <Th>Statut</Th>
             <Th>Rôles</Th>
             <Th></Th>
           </THead>
@@ -355,13 +431,14 @@ export function Members() {
                   {m.username && <div className="text-xs text-ink-muted">@{m.username}</div>}
                 </Td>
                 <Td>{m.phone ?? '—'}</Td>
+                <Td><MemberStatusBadge status={m.member_status} /></Td>
                 <Td>
                   <div className="flex flex-wrap gap-1">
                     {m.roles.map((r) => <RoleBadge key={r} role={r} />)}
                   </div>
                 </Td>
                 <Td>
-                  <div className="flex gap-3">
+                  <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => setEditingInfo(m)}
                       className="text-xs font-semibold text-primary hover:underline"
@@ -373,6 +450,13 @@ export function Members() {
                       className="text-xs font-semibold text-primary hover:underline"
                     >
                       Rôles
+                    </button>
+                    <button
+                      onClick={() => setEditingStatus(m)}
+                      className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                    >
+                      <UserCog className="h-3 w-3" />
+                      Statut
                     </button>
                     <button
                       onClick={() => setResettingPassword(m)}
@@ -390,9 +474,10 @@ export function Members() {
       </Card>
 
       <CreateMemberDialog open={createOpen} onClose={() => setCreateOpen(false)} />
-      <EditMemberDialog member={editingInfo} onClose={() => setEditingInfo(null)} />
-      <RolesDialog member={editingRoles} onClose={() => setEditingRoles(null)} />
+      <EditMemberDialog key={`edit-${editingInfo?.id ?? 'none'}`} member={editingInfo} onClose={() => setEditingInfo(null)} />
+      <RolesDialog key={`roles-${editingRoles?.id ?? 'none'}`} member={editingRoles} onClose={() => setEditingRoles(null)} />
       <ResetPasswordDialog member={resettingPassword} onClose={() => setResettingPassword(null)} />
+      <StatusDialog key={`status-${editingStatus?.id ?? 'none'}`} member={editingStatus} onClose={() => setEditingStatus(null)} />
     </div>
   );
 }
