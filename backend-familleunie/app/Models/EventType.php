@@ -10,7 +10,7 @@ class EventType extends Model
 {
     use HasAuditTrail;
 
-    protected $fillable = ['label', 'default_amount'];
+    protected $fillable = ['label', 'category', 'amount_mode', 'default_amount'];
 
     protected function casts(): array
     {

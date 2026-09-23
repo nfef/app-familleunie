@@ -101,6 +101,9 @@ Route::middleware(['auth:sanctum', 'force.password.change'])->group(function () 
     Route::post('/admin/fund-types',           [AdminController::class, 'storeFundType']);
     Route::patch('/admin/fund-types/{id}',     [AdminController::class, 'updateFundType']);
     Route::delete('/admin/fund-types/{id}',    [AdminController::class, 'deleteFundType']);
+    Route::post('/admin/event-types',          [AdminController::class, 'storeEventType']);
+    Route::patch('/admin/event-types/{id}',    [AdminController::class, 'updateEventType']);
+    Route::delete('/admin/event-types/{id}',   [AdminController::class, 'deleteEventType']);
     Route::get('/admin/fund-entries',          [ContributionController::class, 'adminFundEntries']);
     Route::post('/admin/members',              [AdminController::class, 'storeMember']);
     Route::patch('/admin/members/{id}',        [AdminController::class, 'updateMember']);

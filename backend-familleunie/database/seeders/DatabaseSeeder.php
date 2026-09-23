@@ -51,5 +51,19 @@ class DatabaseSeeder extends Seeder
                 ['is_active' => true]
             );
         }
+
+        // Types d'événements familiaux par défaut
+        // amount_mode "per_member" : default_amount facturé tel quel à chaque membre
+        // amount_mode "envelope"   : default_amount est le total de l'enveloppe, divisé par le nombre de membres
+        $eventTypes = [
+            'Naissance'    => ['category' => 'heureux',    'amount_mode' => 'per_member', 'default_amount' => 10000],
+            'Mariage'      => ['category' => 'heureux',    'amount_mode' => 'envelope',    'default_amount' => 1000000],
+            'Décès parent' => ['category' => 'malheureux', 'amount_mode' => 'envelope',    'default_amount' => 600000],
+            'Décès enfant' => ['category' => 'malheureux', 'amount_mode' => 'per_member', 'default_amount' => 15000],
+            'Décès membre' => ['category' => 'malheureux', 'amount_mode' => 'envelope',    'default_amount' => 1000000],
+        ];
+        foreach ($eventTypes as $label => $attributes) {
+            \App\Models\EventType::updateOrCreate(['label' => $label], $attributes);
+        }
     }
 }

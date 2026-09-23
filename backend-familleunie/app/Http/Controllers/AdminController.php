@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ContributionType;
 use App\Models\FundType;
+use App\Models\EventType;
 use App\Models\MemberContribution;
 use App\Models\EventContribution;
 use App\Models\TontinePayout;
@@ -264,6 +265,85 @@ class AdminController extends Controller
         $type->update($data);
 
         return response()->json($type);
+    }
+
+    // ─── EventTypes ─────────────────────────────────────────────────────────
+
+    /**
+     * @OA\Post(
+     *     path="/api/admin/event-types",
+     *     summary="Créer un type d'événement (ADMIN)",
+     *     tags={"Admin"},
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             required={"label"},
+     *             @OA\Property(property="label", type="string"),
+     *             @OA\Property(property="default_amount", type="integer")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Type créé")
+     * )
+     */
+    public function storeEventType(Request $request): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN']);
+
+        $data = $request->validate([
+            'label'          => ['required', 'string', 'max:255', 'unique:event_types,label'],
+            'category'       => ['nullable', 'in:heureux,malheureux'],
+            'amount_mode'    => ['nullable', 'in:per_member,envelope'],
+            'default_amount' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        return response()->json(EventType::create($data), 201);
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/admin/event-types/{id}",
+     *     summary="Modifier un type d'événement (ADMIN)",
+     *     tags={"Admin"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Type modifié")
+     * )
+     */
+    public function updateEventType(Request $request, int $id): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN']);
+
+        $type = EventType::findOrFail($id);
+
+        $data = $request->validate([
+            'label'          => ['sometimes', 'string', 'max:255', 'unique:event_types,label,' . $type->id],
+            'category'       => ['sometimes', 'nullable', 'in:heureux,malheureux'],
+            'amount_mode'    => ['sometimes', 'in:per_member,envelope'],
+            'default_amount' => ['sometimes', 'nullable', 'integer', 'min:0'],
+        ]);
+
+        $type->update($data);
+
+        return response()->json($type);
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/admin/event-types/{id}",
+     *     summary="Supprimer un type d'événement (ADMIN)",
+     *     tags={"Admin"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Type supprimé")
+     * )
+     */
+    public function deleteEventType(Request $request, int $id): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN']);
+
+        EventType::findOrFail($id)->delete();
+
+        return response()->json(['message' => 'Type d\'événement supprimé avec succès.']);
     }
 
     // ─── Role management ────────────────────────────────────────────────────
