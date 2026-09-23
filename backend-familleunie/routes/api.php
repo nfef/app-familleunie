@@ -94,6 +94,7 @@ Route::middleware(['auth:sanctum', 'force.password.change'])->group(function () 
     Route::post('/admin/fund-types',           [AdminController::class, 'storeFundType']);
     Route::delete('/admin/fund-types/{id}',    [AdminController::class, 'deleteFundType']);
     Route::post('/admin/members',              [AdminController::class, 'storeMember']);
+    Route::patch('/admin/members/{id}',        [AdminController::class, 'updateMember']);
     Route::patch('/admin/members/{id}/roles',  [AdminController::class, 'updateMemberRoles']);
 
     // Subscriptions (Who participates in what)

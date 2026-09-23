@@ -13,6 +13,11 @@ use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
+    private const ALLOWED_ROLES = [
+        'MEMBRE', 'ADMIN', 'TRESORIER', 'COMMISSAIRE', 'SECRETAIRE', 'CENSEUR',
+        'PRESIDENT', 'VICE_PRESIDENT', 'SECRETAIRE_ADJOINT', 'FONDATEUR',
+    ];
+
     /**
      * @OA\Get(
      *     path="/api/admin/dashboard",
@@ -200,14 +205,13 @@ class AdminController extends Controller
     {
         $this->requireRole($request, ['ADMIN']);
 
-        $allowedRoles = ['MEMBRE', 'ADMIN', 'TRESORIER', 'COMMISSAIRE', 'SECRETAIRE', 'CENSEUR'];
         $data = $request->validate([
             'full_name' => ['required', 'string', 'max:255'],
             'email'     => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'username'  => ['nullable', 'string', 'max:255', 'unique:users,username'],
             'phone'     => ['nullable', 'string', 'max:20'],
             'roles'     => ['required', 'array'],
-            'roles.*'   => ['in:' . implode(',', $allowedRoles)],
+            'roles.*'   => ['in:' . implode(',', self::ALLOWED_ROLES)],
         ]);
 
         $temporaryPassword = \Illuminate\Support\Str::password(12);
@@ -231,6 +235,42 @@ class AdminController extends Controller
 
     /**
      * @OA\Patch(
+     *     path="/api/admin/members/{id}",
+     *     summary="Modifier les informations d'un membre (ADMIN)",
+     *     tags={"Admin"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="full_name", type="string"),
+     *             @OA\Property(property="email", type="string"),
+     *             @OA\Property(property="username", type="string"),
+     *             @OA\Property(property="phone", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Membre mis à jour")
+     * )
+     */
+    public function updateMember(Request $request, int $id): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN']);
+
+        $member = User::findOrFail($id);
+
+        $data = $request->validate([
+            'full_name' => ['sometimes', 'string', 'max:255'],
+            'email'     => ['sometimes', 'string', 'email', 'max:255', 'unique:users,email,' . $member->id],
+            'username'  => ['sometimes', 'nullable', 'string', 'max:255', 'unique:users,username,' . $member->id],
+            'phone'     => ['sometimes', 'nullable', 'string', 'max:20'],
+        ]);
+
+        $member->update($data);
+
+        return response()->json(['message' => 'Membre mis à jour.', 'user' => $member]);
+    }
+
+    /**
+     * @OA\Patch(
      *     path="/api/admin/members/{id}/roles",
      *     summary="Modifier les rôles d'un membre (ADMIN)",
      *     tags={"Admin"},
@@ -249,10 +289,9 @@ class AdminController extends Controller
     {
         $this->requireRole($request, ['ADMIN']);
 
-        $allowed = ['MEMBRE', 'ADMIN', 'TRESORIER', 'COMMISSAIRE', 'SECRETAIRE', 'CENSEUR'];
-        $data    = $request->validate([
+        $data = $request->validate([
             'roles'   => ['required', 'array'],
-            'roles.*' => ['in:' . implode(',', $allowed)],
+            'roles.*' => ['in:' . implode(',', self::ALLOWED_ROLES)],
         ]);
 
         $member = User::findOrFail($id);
