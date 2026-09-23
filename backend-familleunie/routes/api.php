@@ -83,6 +83,7 @@ Route::middleware(['auth:sanctum', 'force.password.change'])->group(function () 
     // Événements
     Route::get('/event-types',          [EventController::class, 'types']);
     Route::get('/events',               [EventController::class, 'index']);
+    Route::get('/events/{id}',          [EventController::class, 'show']);
     Route::post('/events',              [EventController::class, 'store']);
     Route::post('/event-contributions', [EventController::class, 'storeContribution']);
 

@@ -1346,6 +1346,35 @@
                 ]
             }
         },
+        "/api/events/{id}": {
+            "get": {
+                "tags": [
+                    "Événements"
+                ],
+                "summary": "Détail d'un événement : contributions déjà enregistrées et membres n'ayant pas encore contribué",
+                "operationId": "6f743f71f7a88dbe57be1d9c9ebf47cb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Détail de l'événement"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/event-contributions": {
             "post": {
                 "tags": [

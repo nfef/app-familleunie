@@ -47,9 +47,7 @@ class EventController extends Controller
         $activeMembersCount = User::active()->count();
 
         $types = EventType::all()->map(function (EventType $type) use ($activeMembersCount) {
-            $type->computed_share = ($type->amount_mode === 'envelope' && $activeMembersCount > 0)
-                ? (int) round($type->default_amount / $activeMembersCount)
-                : $type->default_amount;
+            $type->computed_share = $type->computeShare($activeMembersCount);
             return $type;
         });
 
@@ -98,6 +96,44 @@ class EventController extends Controller
     }
 
     /**
+     * @OA\Get(
+     *     path="/api/events/{id}",
+     *     summary="Détail d'un événement : contributions déjà enregistrées et membres n'ayant pas encore contribué",
+     *     tags={"Événements"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Détail de l'événement")
+     * )
+     */
+    public function show(int $id): JsonResponse
+    {
+        $event = Event::with([
+            'member:id,full_name',
+            'eventType',
+            'contributions.contributor:id,full_name',
+        ])->findOrFail($id);
+
+        $activeMembersCount = User::active()->count();
+        $expectedShare = $event->eventType->computeShare($activeMembersCount, $event->custom_amount);
+
+        $contributedIds = $event->contributions->pluck('contributor_id')->unique();
+        $pendingMembers = User::active()
+            ->whereNotIn('id', $contributedIds)
+            ->orderBy('full_name')
+            ->get(['id', 'full_name']);
+
+        return response()->json([
+            'event'                 => $event,
+            'expected_share'        => $expectedShare,
+            'expected_total'        => $expectedShare * $activeMembersCount,
+            'total_collected'       => (int) $event->contributions->sum('amount'),
+            'contributors_count'    => $contributedIds->count(),
+            'active_members_count'  => $activeMembersCount,
+            'pending_members'       => $pendingMembers,
+        ]);
+    }
+
+    /**
      * @OA\Post(
      *     path="/api/event-contributions",
      *     summary="Enregistrer une contribution pour un événement",
@@ -127,7 +163,7 @@ class EventController extends Controller
             'event_id'       => $data['event_id'],
             'contributor_id' => $data['contributor_id'] ?? $request->user()->id,
             'amount'         => $data['amount'],
-            'meeting_id'     => $data['meeting_id'],
+            'meeting_id'     => $data['meeting_id'] ?? null,
         ]);
 
         return response()->json($contribution->load('contributor:id,full_name'), 201);

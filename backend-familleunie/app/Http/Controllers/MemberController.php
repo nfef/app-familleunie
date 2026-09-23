@@ -156,7 +156,7 @@ class MemberController extends Controller
                 [
                     'parts'             => $subData['parts'],
                     'is_active'         => $subData['is_active'],
-                    'suspension_reason' => $subData['suspension_reason']
+                    'suspension_reason' => $subData['suspension_reason'] ?? null
                 ]
             );
         }
