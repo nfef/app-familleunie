@@ -64,7 +64,13 @@ export function Dashboard() {
         />
         <StatTile
           label="Membres actifs"
-          value={stats.data ? `${stats.data.active_members_count} / ${stats.data.members_count}` : '—'}
+          value={
+            stats.data
+              ? stats.data.active_members_count !== undefined
+                ? `${stats.data.active_members_count} / ${stats.data.members_count}`
+                : String(stats.data.members_count)
+              : '—'
+          }
           icon={Users}
         />
         <StatTile
