@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { Copy, ShieldCheck, UserPlus } from 'lucide-react';
-import { createMember, getMembers, updateMemberRoles, ApiError, type Member } from '@/lib/api';
+import { createMember, getMembers, updateMember, updateMemberRoles, ApiError, type Member } from '@/lib/api';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Table, THead, Th, TBody, Td, EmptyState } from '@/components/ui/Table';
@@ -13,7 +13,10 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Dialog } from '@/components/ui/Dialog';
 
-const ALL_ROLES = ['MEMBRE', 'TRESORIER', 'COMMISSAIRE', 'SECRETAIRE', 'ADMIN'];
+const ALL_ROLES = [
+  'MEMBRE', 'ADMIN', 'TRESORIER', 'COMMISSAIRE', 'SECRETAIRE', 'CENSEUR',
+  'PRESIDENT', 'VICE_PRESIDENT', 'SECRETAIRE_ADJOINT', 'FONDATEUR',
+];
 
 const schema = z.object({
   full_name: z.string().min(3, 'Nom trop court'),
@@ -22,6 +25,14 @@ const schema = z.object({
   phone: z.string().optional(),
 });
 type Values = z.infer<typeof schema>;
+
+const editSchema = z.object({
+  full_name: z.string().min(3, 'Nom trop court'),
+  email: z.string().email('Email invalide'),
+  username: z.string().trim().min(3, 'Au moins 3 caractères').optional().or(z.literal('')),
+  phone: z.string().optional(),
+});
+type EditValues = z.infer<typeof editSchema>;
 
 function RoleBadge({ role }: { role: string }) {
   return (
@@ -188,10 +199,66 @@ function RolesDialog({ member, onClose }: { member: Member | null; onClose: () =
   );
 }
 
+function EditMemberDialog({ member, onClose }: { member: Member | null; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const { register, handleSubmit, formState: { errors } } = useForm<EditValues>({ resolver: zodResolver(editSchema) });
+
+  const mutation = useMutation({
+    mutationFn: (data: EditValues) => updateMember(member!.id, { ...data, username: data.username || undefined }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+      toast.success('Informations mises à jour');
+      onClose();
+    },
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : 'Erreur.'),
+  });
+
+  if (!member) return null;
+
+  return (
+    <Dialog
+      open={!!member}
+      onClose={onClose}
+      title={`Modifier — ${member.full_name}`}
+    >
+      <form
+        onSubmit={handleSubmit((v) => mutation.mutate(v))}
+        className="space-y-4"
+      >
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-ink">Nom complet</label>
+          <Input {...register('full_name')} defaultValue={member.full_name} placeholder="Jean Dupont" />
+          {errors.full_name && <p className="mt-1 text-xs text-red-500">{errors.full_name.message}</p>}
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-ink">Email</label>
+            <Input {...register('email')} defaultValue={member.email} type="email" placeholder="jean@exemple.com" />
+            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-ink">Login (optionnel)</label>
+            <Input {...register('username')} defaultValue={member.username ?? ''} placeholder="jean" />
+            {errors.username && <p className="mt-1 text-xs text-red-500">{errors.username.message}</p>}
+          </div>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-sm font-semibold text-ink">Téléphone (optionnel)</label>
+          <Input {...register('phone')} defaultValue={member.phone ?? ''} placeholder="+225 00 00 00 00" />
+        </div>
+        <Button type="submit" disabled={mutation.isPending} className="w-full">
+          {mutation.isPending ? 'Enregistrement…' : 'Enregistrer'}
+        </Button>
+      </form>
+    </Dialog>
+  );
+}
+
 export function Members() {
   const { data: members, isLoading } = useQuery({ queryKey: ['members'], queryFn: getMembers });
   const [createOpen, setCreateOpen] = useState(false);
   const [editingRoles, setEditingRoles] = useState<Member | null>(null);
+  const [editingInfo, setEditingInfo] = useState<Member | null>(null);
 
   return (
     <div>
@@ -232,12 +299,20 @@ export function Members() {
                   </div>
                 </Td>
                 <Td>
-                  <button
-                    onClick={() => setEditingRoles(m)}
-                    className="text-xs font-semibold text-primary hover:underline"
-                  >
-                    Modifier
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setEditingInfo(m)}
+                      className="text-xs font-semibold text-primary hover:underline"
+                    >
+                      Infos
+                    </button>
+                    <button
+                      onClick={() => setEditingRoles(m)}
+                      className="text-xs font-semibold text-primary hover:underline"
+                    >
+                      Rôles
+                    </button>
+                  </div>
                 </Td>
               </tr>
             ))}
@@ -246,6 +321,7 @@ export function Members() {
       </Card>
 
       <CreateMemberDialog open={createOpen} onClose={() => setCreateOpen(false)} />
+      <EditMemberDialog member={editingInfo} onClose={() => setEditingInfo(null)} />
       <RolesDialog member={editingRoles} onClose={() => setEditingRoles(null)} />
     </div>
   );
