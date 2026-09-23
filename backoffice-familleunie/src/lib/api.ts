@@ -71,8 +71,15 @@ export interface ContributionType { id: number; label: string; amount: number; f
 export interface FundType { id: number; label: string; target_amount: number | null; is_active: boolean }
 export interface MemberContribution { id: number; user_id: number; contribution_type_id: number; meeting_id: number; parts: number; unit_amount: number; total_amount: number; paid_at: string; user?: { full_name: string }; contribution_type?: { label: string }; meeting?: { meeting_date: string } }
 export interface FundEntry { id: number; fund_type_id: number; member_id: number | null; amount: number; direction: 'in' | 'out'; note: string | null; created_at: string; fund_type?: { label: string }; member?: { full_name: string } }
-export interface EventType { id: number; label: string; default_amount: number }
-export interface ApiEvent { id: number; member_id: number; event_type_id: number; occurred_on: string; custom_amount: number | null; status: string; note: string | null; member?: { full_name: string }; event_type?: { label: string; default_amount: number } }
+export interface EventType {
+  id: number;
+  label: string;
+  category: 'heureux' | 'malheureux' | null;
+  amount_mode: 'per_member' | 'envelope';
+  default_amount: number;
+  computed_share?: number;
+}
+export interface ApiEvent { id: number; member_id: number; event_type_id: number; occurred_on: string; custom_amount: number | null; status: string; note: string | null; member?: { full_name: string }; event_type?: { label: string; category: 'heureux' | 'malheureux' | null; default_amount: number } }
 export interface Sanction { id: number; user_id: number; meeting_id: number | null; label: string; amount: number; status: 'pending' | 'paid'; paid_at: string | null; user?: { full_name: string }; meeting?: { meeting_date: string } }
 export interface Loan {
   id: number;
@@ -168,6 +175,12 @@ export const renewLoan = (id: number, data: { capital_restant?: number; nouvel_i
 
 // ─── Événements ────────────────────────────────────────────────────────────
 export const getEventTypes = () => apiFetch<EventType[]>('/api/event-types');
+export const postEventType = (data: { label: string; category?: 'heureux' | 'malheureux'; amount_mode?: 'per_member' | 'envelope'; default_amount?: number }) =>
+  apiFetch<EventType>('/api/admin/event-types', { method: 'POST', body: JSON.stringify(data) });
+export const updateEventType = (id: number, data: { label?: string; category?: 'heureux' | 'malheureux'; amount_mode?: 'per_member' | 'envelope'; default_amount?: number }) =>
+  apiFetch<EventType>(`/api/admin/event-types/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+export const deleteEventType = (id: number) =>
+  apiFetch<{ message: string }>(`/api/admin/event-types/${id}`, { method: 'DELETE' });
 export const getEvents = () => apiFetch<ApiEvent[]>('/api/events');
 export const postEvent = (data: { event_type_id: number; occurred_on: string; custom_amount?: number; note?: string; member_id?: number }) =>
   apiFetch<ApiEvent>('/api/events', { method: 'POST', body: JSON.stringify(data) });

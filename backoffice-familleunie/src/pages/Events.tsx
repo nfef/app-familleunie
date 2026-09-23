@@ -12,7 +12,7 @@ import { Table, THead, Th, TBody, Td, EmptyState } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Dialog } from '@/components/ui/Dialog';
-import { formatDate } from '@/lib/utils';
+import { formatCFA, formatDate } from '@/lib/utils';
 
 const schema = z.object({
   member_id: z.coerce.number().min(1, 'Membre requis'),
@@ -54,7 +54,11 @@ function CreateEventDialog({ open, onClose }: { open: boolean; onClose: () => vo
           <label className="mb-1.5 block text-sm font-semibold text-ink">Type d'événement</label>
           <select {...register('event_type_id')} className="w-full rounded-xl border border-border bg-bg-input px-4 py-2.5 text-sm text-ink outline-none focus:border-primary">
             <option value="">— Sélectionner —</option>
-            {types?.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+            {types?.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.label} — {t.amount_mode === 'envelope' ? `${formatCFA(t.computed_share ?? 0)}/membre (enveloppe ${formatCFA(t.default_amount)})` : `${formatCFA(t.default_amount)}/membre`}
+              </option>
+            ))}
           </select>
           {errors.event_type_id && <p className="mt-1 text-xs text-red-500">{errors.event_type_id.message}</p>}
         </div>
@@ -100,7 +104,14 @@ export function Events() {
             {events?.map((e) => (
               <tr key={e.id} className="hover:bg-bg-input/60">
                 <Td className="font-semibold">{e.member?.full_name ?? `#${e.member_id}`}</Td>
-                <Td>{e.event_type?.label ?? '—'}</Td>
+                <Td>
+                  <div className="flex items-center gap-2">
+                    {e.event_type?.label ?? '—'}
+                    {e.event_type?.category && (
+                      <span className={`h-2 w-2 rounded-full ${e.event_type.category === 'heureux' ? 'bg-green-500' : 'bg-ink-muted'}`} title={e.event_type.category === 'heureux' ? 'Heureux' : 'Malheureux'} />
+                    )}
+                  </div>
+                </Td>
                 <Td>{formatDate(e.occurred_on)}</Td>
                 <Td>{e.note ?? '—'}</Td>
               </tr>

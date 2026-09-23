@@ -8,6 +8,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import {
   getContributionTypes, postContributionType, deleteContributionType,
   getFundTypes, postFundType, deleteFundType,
+  getEventTypes, postEventType, deleteEventType,
   getAdminConfigs, postAdminConfig,
   ApiError,
 } from '@/lib/api';
@@ -24,6 +25,26 @@ type CtValues = z.infer<typeof ctSchema>;
 
 const ftSchema = z.object({ label: z.string().min(1, 'Requis'), target_amount: z.coerce.number().optional() });
 type FtValues = z.infer<typeof ftSchema>;
+
+const etSchema = z.object({
+  label: z.string().min(1, 'Requis'),
+  category: z.enum(['heureux', 'malheureux']),
+  amount_mode: z.enum(['per_member', 'envelope']),
+  default_amount: z.coerce.number().min(0).optional(),
+});
+type EtValues = z.infer<typeof etSchema>;
+
+function CategoryBadge({ category }: { category: 'heureux' | 'malheureux' | null }) {
+  if (!category) return <span className="text-ink-light">—</span>;
+  const isHeureux = category === 'heureux';
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+      isHeureux ? 'bg-green-50 text-green-700' : 'bg-ink/5 text-ink-muted'
+    }`}>
+      {isHeureux ? 'Heureux' : 'Malheureux'}
+    </span>
+  );
+}
 
 const cfgSchema = z.object({ key: z.string().min(1, 'Requis'), value: z.string().min(1, 'Requis'), label: z.string().optional() });
 type CfgValues = z.infer<typeof cfgSchema>;
@@ -173,6 +194,103 @@ function FundTypesSection() {
   );
 }
 
+function EventTypesSection() {
+  const queryClient = useQueryClient();
+  const { data: types, isLoading } = useQuery({ queryKey: ['event-types'], queryFn: getEventTypes });
+  const [open, setOpen] = useState(false);
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<EtValues>({
+    resolver: zodResolver(etSchema),
+    defaultValues: { category: 'heureux', amount_mode: 'per_member' },
+  });
+  const amountMode = watch('amount_mode');
+
+  const createMutation = useMutation({
+    mutationFn: (data: EtValues) => postEventType(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-types'] });
+      toast.success('Type créé');
+      reset();
+      setOpen(false);
+    },
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : 'Erreur.'),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteEventType(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-types'] });
+      toast.success('Type supprimé');
+    },
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : 'Erreur.'),
+  });
+
+  return (
+    <Card>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-base font-bold text-ink">Types d'événements</h2>
+        <Button size="sm" onClick={() => setOpen(true)}><Plus className="h-3.5 w-3.5" />Ajouter</Button>
+      </div>
+      <Table>
+        <THead><Th>Libellé</Th><Th>Catégorie</Th><Th>Mode</Th><Th>Montant</Th><Th>Part / membre</Th><Th></Th></THead>
+        <TBody>
+          {isLoading && <EmptyState label="Chargement…" />}
+          {!isLoading && types?.length === 0 && <EmptyState label="Aucun type." />}
+          {types?.map((t) => (
+            <tr key={t.id} className="hover:bg-bg-input/60">
+              <Td className="font-semibold">{t.label}</Td>
+              <Td><CategoryBadge category={t.category} /></Td>
+              <Td className="text-xs text-ink-muted">{t.amount_mode === 'envelope' ? 'Enveloppe' : 'Par membre'}</Td>
+              <Td>{t.default_amount ? formatCFA(t.default_amount) : '—'}</Td>
+              <Td>
+                {t.amount_mode === 'envelope' ? (
+                  <span className="font-semibold text-primary">{formatCFA(t.computed_share ?? 0)}</span>
+                ) : (
+                  '—'
+                )}
+              </Td>
+              <Td>
+                <button onClick={() => deleteMutation.mutate(t.id)} className="text-ink-light hover:text-red-500">
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </Td>
+            </tr>
+          ))}
+        </TBody>
+      </Table>
+
+      <Dialog open={open} onClose={() => setOpen(false)} title="Nouveau type d'événement">
+        <form onSubmit={handleSubmit((v) => createMutation.mutate(v))} className="space-y-4">
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-ink">Libellé</label>
+            <Input {...register('label')} placeholder="Naissance" />
+            {errors.label && <p className="mt-1 text-xs text-red-500">{errors.label.message}</p>}
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-ink">Catégorie</label>
+            <select {...register('category')} className="w-full rounded-xl border border-border bg-bg-input px-4 py-2.5 text-sm text-ink outline-none focus:border-primary">
+              <option value="heureux">Heureux</option>
+              <option value="malheureux">Malheureux</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-ink">Mode de calcul</label>
+            <select {...register('amount_mode')} className="w-full rounded-xl border border-border bg-bg-input px-4 py-2.5 text-sm text-ink outline-none focus:border-primary">
+              <option value="per_member">Montant fixe par membre</option>
+              <option value="envelope">Enveloppe totale divisée par le nombre de membres</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-ink">
+              {amountMode === 'envelope' ? 'Montant total de l\'enveloppe (FCFA)' : 'Montant par membre (FCFA)'}
+            </label>
+            <Input {...register('default_amount')} type="number" placeholder={amountMode === 'envelope' ? '1000000' : '5000'} />
+          </div>
+          <Button type="submit" disabled={createMutation.isPending} className="w-full">{createMutation.isPending ? 'Création…' : 'Créer'}</Button>
+        </form>
+      </Dialog>
+    </Card>
+  );
+}
+
 function AssociationConfigSection() {
   const queryClient = useQueryClient();
   const { data: configs, isLoading } = useQuery({ queryKey: ['admin-configs'], queryFn: getAdminConfigs });
@@ -241,6 +359,7 @@ export function Settings() {
       <div className="space-y-6">
         <ContributionTypesSection />
         <FundTypesSection />
+        <EventTypesSection />
         <AssociationConfigSection />
       </div>
     </div>
