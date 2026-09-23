@@ -124,6 +124,24 @@ class MeetingController extends Controller
 
     /**
      * @OA\Delete(
+     *     path="/api/cycles/{id}",
+     *     summary="Supprimer un cycle (ADMIN)",
+     *     tags={"Réunions"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(response=200, description="Cycle supprimé")
+     * )
+     */
+    public function destroyCycle(Request $request, int $id): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN']);
+
+        Cycle::findOrFail($id)->delete();
+
+        return response()->json(['message' => 'Cycle supprimé.']);
+    }
+
+    /**
+     * @OA\Delete(
      *     path="/api/meetings/{id}",
      *     summary="Supprimer une réunion (ADMIN/TRESORIER)",
      *     tags={"Réunions"},

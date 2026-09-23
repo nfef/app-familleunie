@@ -158,6 +158,48 @@ class ContributionController extends Controller
     }
 
     /**
+     * @OA\Patch(
+     *     path="/api/contributions/{id}",
+     *     summary="Modifier une cotisation déjà enregistrée (ADMIN/TRESORIER)",
+     *     tags={"Cotisations"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="contribution_type_id", type="integer"),
+     *             @OA\Property(property="meeting_id", type="integer"),
+     *             @OA\Property(property="parts", type="integer")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Cotisation mise à jour")
+     * )
+     */
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN', 'TRESORIER']);
+
+        $contribution = MemberContribution::findOrFail($id);
+
+        $data = $request->validate([
+            'contribution_type_id' => ['sometimes', 'exists:contribution_types,id'],
+            'meeting_id'           => ['sometimes', 'exists:meetings,id'],
+            'parts'                => ['sometimes', 'numeric', 'min:0'],
+        ]);
+
+        $typeId = $data['contribution_type_id'] ?? $contribution->contribution_type_id;
+        $parts  = $data['parts'] ?? $contribution->parts;
+        $unitAmount = \App\Models\ContributionType::findOrFail($typeId)->amount;
+
+        $contribution->update([
+            ...$data,
+            'unit_amount'  => $unitAmount,
+            'total_amount' => $unitAmount * $parts,
+        ]);
+
+        return response()->json($contribution->load(['contributionType', 'meeting']));
+    }
+
+    /**
      * @OA\Post(
      *     path="/api/fund-entries",
      *     summary="Enregistrer un dépôt dans une caisse (ADMIN/TRESORIER/COMMISSAIRE)",
@@ -196,6 +238,80 @@ class ContributionController extends Controller
         ]);
 
         return response()->json($entry->load(['fundType', 'meeting', 'member', 'user']), 201);
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/fund-entries/{id}",
+     *     summary="Modifier un mouvement de caisse déjà enregistré (ADMIN/TRESORIER/COMMISSAIRE)",
+     *     tags={"Cotisations"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="fund_type_id", type="integer"),
+     *             @OA\Property(property="member_id", type="integer"),
+     *             @OA\Property(property="amount", type="integer"),
+     *             @OA\Property(property="direction", type="string", enum={"in","out"}),
+     *             @OA\Property(property="note", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Mouvement mis à jour")
+     * )
+     */
+    public function updateFundEntry(Request $request, int $id): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN', 'TRESORIER', 'COMMISSAIRE']);
+
+        $entry = FundEntry::findOrFail($id);
+
+        $data = $request->validate([
+            'fund_type_id' => ['sometimes', 'exists:fund_types,id'],
+            'member_id'    => ['sometimes', 'nullable', 'exists:users,id'],
+            'amount'       => ['sometimes', 'integer', 'min:1'],
+            'direction'    => ['sometimes', 'in:in,out'],
+            'note'         => ['sometimes', 'nullable', 'string'],
+        ]);
+
+        $entry->update($data);
+
+        return response()->json($entry->load(['fundType', 'meeting', 'member', 'user']));
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/admin/fund-entries",
+     *     summary="Liste de tous les mouvements de caisse (ADMIN/TRESORIER/COMMISSAIRE)",
+     *     tags={"Admin"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="fund_type_id", in="query", required=false, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="direction", in="query", required=false, @OA\Schema(type="string", enum={"in","out"})),
+     *     @OA\Parameter(name="from", in="query", required=false, @OA\Schema(type="string", format="date")),
+     *     @OA\Parameter(name="to", in="query", required=false, @OA\Schema(type="string", format="date")),
+     *     @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Mouvements de caisse paginés")
+     * )
+     */
+    public function adminFundEntries(Request $request): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN', 'TRESORIER', 'COMMISSAIRE']);
+
+        $query = FundEntry::query()->with(['fundType', 'meeting', 'member', 'user']);
+
+        if ($request->filled('fund_type_id')) {
+            $query->where('fund_type_id', $request->input('fund_type_id'));
+        }
+        if ($request->filled('direction')) {
+            $query->where('direction', $request->input('direction'));
+        }
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->input('from'));
+        }
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->input('to'));
+        }
+
+        return response()->json($query->orderByDesc('created_at')->paginate(20));
     }
 
     /**

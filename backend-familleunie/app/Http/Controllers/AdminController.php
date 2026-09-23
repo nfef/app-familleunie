@@ -35,10 +35,39 @@ class AdminController extends Controller
         $eventsBalance  = EventContribution::sum('amount');
         $membersCount   = User::count();
 
+        // Répartition des cotisations par cycle
+        $byCycle = \App\Models\Cycle::orderByDesc('start_date')->get(['id', 'label', 'is_active'])
+            ->map(function ($cycle) {
+                $total = MemberContribution::whereHas('meeting', fn ($q) => $q->where('cycle_id', $cycle->id))
+                    ->sum('total_amount');
+                return [
+                    'cycle_id'             => $cycle->id,
+                    'label'                => $cycle->label,
+                    'is_active'            => $cycle->is_active,
+                    'total_contributions'  => (int) $total,
+                ];
+            });
+
+        // Évolution des cotisations sur les 6 derniers mois (indépendant du moteur de BDD)
+        $monthlyTrend = collect(range(0, 5))->map(function ($i) {
+            $month = now()->subMonths(5 - $i);
+            $total = MemberContribution::whereBetween('paid_at', [
+                $month->copy()->startOfMonth(),
+                $month->copy()->endOfMonth(),
+            ])->sum('total_amount');
+
+            return [
+                'month'                => $month->format('Y-m'),
+                'total_contributions'  => (int) $total,
+            ];
+        });
+
         return response()->json([
             'tontine_balance' => $tontineBalance,
             'events_balance'  => $eventsBalance,
             'members_count'   => $membersCount,
+            'by_cycle'        => $byCycle,
+            'monthly_trend'   => $monthlyTrend,
         ]);
     }
 
@@ -110,6 +139,36 @@ class AdminController extends Controller
         return response()->json(['message' => 'Type de cotisation supprimé avec succès.']);
     }
 
+    /**
+     * @OA\Patch(
+     *     path="/api/admin/contribution-types/{id}",
+     *     summary="Modifier un type de cotisation (ADMIN)",
+     *     tags={"Admin"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Type modifié")
+     * )
+     */
+    public function updateContributionType(Request $request, int $id): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN']);
+
+        $type = ContributionType::findOrFail($id);
+
+        $data = $request->validate([
+            'label'        => ['sometimes', 'string', 'max:255', 'unique:contribution_types,label,' . $type->id],
+            'amount'       => ['sometimes', 'integer', 'min:1'],
+            'frequency'    => ['sometimes', 'in:weekly,monthly'],
+            'has_parts'    => ['sometimes', 'boolean'],
+            'is_mandatory' => ['sometimes', 'boolean'],
+            'is_active'    => ['sometimes', 'boolean'],
+        ]);
+
+        $type->update($data);
+
+        return response()->json($type);
+    }
+
     // ─── FundTypes ──────────────────────────────────────────────────────────
 
     /**
@@ -178,6 +237,33 @@ class AdminController extends Controller
         $type->delete();
 
         return response()->json(['message' => 'Caisse supprimée avec succès.']);
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/admin/fund-types/{id}",
+     *     summary="Modifier une caisse (ADMIN)",
+     *     tags={"Admin"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Caisse modifiée")
+     * )
+     */
+    public function updateFundType(Request $request, int $id): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN']);
+
+        $type = FundType::findOrFail($id);
+
+        $data = $request->validate([
+            'label'         => ['sometimes', 'string', 'max:255', 'unique:fund_types,label,' . $type->id],
+            'target_amount' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            'is_active'     => ['sometimes', 'boolean'],
+        ]);
+
+        $type->update($data);
+
+        return response()->json($type);
     }
 
     // ─── Role management ────────────────────────────────────────────────────
@@ -264,6 +350,31 @@ class AdminController extends Controller
             'temporary_password'  => $temporaryPassword,
             'user'                => $member,
         ]);
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/admin/members/{id}",
+     *     summary="Supprimer un membre (ADMIN)",
+     *     tags={"Admin"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Membre supprimé")
+     * )
+     */
+    public function destroyMember(Request $request, int $id): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN']);
+
+        if ($request->user()->id === $id) {
+            abort(422, 'Vous ne pouvez pas supprimer votre propre compte.');
+        }
+
+        $member = User::findOrFail($id);
+        $member->tokens()->delete();
+        $member->delete();
+
+        return response()->json(['message' => 'Membre supprimé.']);
     }
 
     /**

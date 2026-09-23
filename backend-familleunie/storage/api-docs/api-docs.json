@@ -125,6 +125,33 @@
                         "sanctum": []
                     }
                 ]
+            },
+            "patch": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Modifier un type de cotisation (ADMIN)",
+                "operationId": "62d367baf4ea46820be06d8d0018424a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Type modifié"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/admin/fund-types": {
@@ -210,6 +237,33 @@
                         "sanctum": []
                     }
                 ]
+            },
+            "patch": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Modifier une caisse (ADMIN)",
+                "operationId": "be3204022019b31a90aef282dc3cb940",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Caisse modifiée"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/api/admin/members": {
@@ -256,6 +310,114 @@
                 "responses": {
                     "201": {
                         "description": "Membre créé"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/members/{id}/reset-password": {
+            "patch": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Réinitialiser le mot de passe d'un membre (ADMIN)",
+                "operationId": "86eb109d442b58d1f0facb722baa384a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mot de passe réinitialisé"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/members/{id}": {
+            "delete": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Supprimer un membre (ADMIN)",
+                "operationId": "91af855a1a2555d6d3f43f9045d880d7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Membre supprimé"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Modifier les informations d'un membre (ADMIN)",
+                "operationId": "07936bbdb32165895e5540aa7bfe586a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "full_name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "username": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Membre mis à jour"
                     }
                 },
                 "security": [
@@ -694,6 +856,55 @@
                 ]
             }
         },
+        "/api/contributions/{id}": {
+            "patch": {
+                "tags": [
+                    "Cotisations"
+                ],
+                "summary": "Modifier une cotisation déjà enregistrée (ADMIN/TRESORIER)",
+                "operationId": "11a1607478fe573b80fcf137199c30c1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "contribution_type_id": {
+                                        "type": "integer"
+                                    },
+                                    "meeting_id": {
+                                        "type": "integer"
+                                    },
+                                    "parts": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cotisation mise à jour"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/fund-entries": {
             "post": {
                 "tags": [
@@ -738,6 +949,132 @@
                 "responses": {
                     "201": {
                         "description": "Dépôt enregistré"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/fund-entries/{id}": {
+            "patch": {
+                "tags": [
+                    "Cotisations"
+                ],
+                "summary": "Modifier un mouvement de caisse déjà enregistré (ADMIN/TRESORIER/COMMISSAIRE)",
+                "operationId": "7f87dfb9a75f482d4c6d55da8e4844c2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "fund_type_id": {
+                                        "type": "integer"
+                                    },
+                                    "member_id": {
+                                        "type": "integer"
+                                    },
+                                    "amount": {
+                                        "type": "integer"
+                                    },
+                                    "direction": {
+                                        "type": "string",
+                                        "enum": [
+                                            "in",
+                                            "out"
+                                        ]
+                                    },
+                                    "note": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Mouvement mis à jour"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/fund-entries": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Liste de tous les mouvements de caisse (ADMIN/TRESORIER/COMMISSAIRE)",
+                "operationId": "fa3ffe497faeb56348ff9b5a24edba38",
+                "parameters": [
+                    {
+                        "name": "fund_type_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "direction",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "in",
+                                "out"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mouvements de caisse paginés"
                     }
                 },
                 "security": [
@@ -997,6 +1334,23 @@
             }
         },
         "/api/cycles/{id}": {
+            "delete": {
+                "tags": [
+                    "Réunions"
+                ],
+                "summary": "Supprimer un cycle (ADMIN)",
+                "operationId": "ddf2510dd2da9c52b85b742bd9f846a6",
+                "responses": {
+                    "200": {
+                        "description": "Cycle supprimé"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
             "patch": {
                 "tags": [
                     "Réunions"

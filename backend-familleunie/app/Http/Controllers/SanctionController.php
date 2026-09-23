@@ -58,6 +58,15 @@ class SanctionController extends Controller
         return response()->json($sanction);
     }
 
+    public function destroy(Request $request, int $id): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN']);
+
+        Sanction::findOrFail($id)->delete();
+
+        return response()->json(['message' => 'Sanction supprimée.']);
+    }
+
     private function requireRole(Request $request, array $roles): void
     {
         $userRoles = $request->user()->roles ?? [];

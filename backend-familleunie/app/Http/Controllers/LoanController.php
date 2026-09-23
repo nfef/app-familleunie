@@ -59,6 +59,15 @@ class LoanController extends Controller
         return response()->json($loan);
     }
 
+    public function destroy(Request $request, int $id): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN']);
+
+        Loan::findOrFail($id)->delete();
+
+        return response()->json(['message' => 'Prêt supprimé.']);
+    }
+
     private function requireRole(Request $request, array $roles): void
     {
         $userRoles = $request->user()->roles ?? [];

@@ -45,6 +45,7 @@ Route::middleware(['auth:sanctum', 'force.password.change'])->group(function () 
     Route::get('/cycles',      [MeetingController::class, 'cycles']);
     Route::post('/cycles',     [MeetingController::class, 'storeCycle']);
     Route::patch('/cycles/{id}', [MeetingController::class, 'updateCycle']);
+    Route::delete('/cycles/{id}', [MeetingController::class, 'destroyCycle']);
     Route::get('/meetings',    [MeetingController::class, 'index']);
     Route::post('/meetings',   [MeetingController::class, 'store']);
     Route::delete('/meetings/{id}', [MeetingController::class, 'destroy']);
@@ -55,17 +56,21 @@ Route::middleware(['auth:sanctum', 'force.password.change'])->group(function () 
     Route::get('/contributions/summary',      [ContributionController::class, 'summary']);
     Route::get('/contributions/report/{id}', [ContributionController::class, 'meetingReport']);
     Route::post('/contributions',             [ContributionController::class, 'store']);
+    Route::patch('/contributions/{id}',       [ContributionController::class, 'update']);
     Route::post('/fund-entries',              [ContributionController::class, 'storeFundEntry']);
+    Route::patch('/fund-entries/{id}',        [ContributionController::class, 'updateFundEntry']);
 
     // Sanctions
     Route::get('/sanctions', [SanctionController::class, 'index']);
     Route::post('/sanctions', [SanctionController::class, 'store']);
     Route::patch('/sanctions/{id}/pay', [SanctionController::class, 'markAsPaid']);
+    Route::delete('/sanctions/{id}', [SanctionController::class, 'destroy']);
 
     // Prêts (Loans)
     Route::get('/loans', [LoanController::class, 'index']);
     Route::post('/loans', [LoanController::class, 'store']);
     Route::patch('/loans/{id}/pay', [LoanController::class, 'markAsPaid']);
+    Route::delete('/loans/{id}', [LoanController::class, 'destroy']);
 
     // Rapports (Reports)
     Route::get('/reports/me',     [ReportController::class, 'myReport']);
@@ -89,14 +94,18 @@ Route::middleware(['auth:sanctum', 'force.password.change'])->group(function () 
     Route::get('/admin/dashboard',             [AdminController::class, 'dashboard']);
     Route::get('/admin/contribution-types',    [AdminController::class, 'contributionTypes']);
     Route::post('/admin/contribution-types',   [AdminController::class, 'storeContributionType']);
+    Route::patch('/admin/contribution-types/{id}', [AdminController::class, 'updateContributionType']);
     Route::delete('/admin/contribution-types/{id}', [AdminController::class, 'deleteContributionType']);
     Route::get('/admin/fund-types',            [AdminController::class, 'fundTypes']);
     Route::post('/admin/fund-types',           [AdminController::class, 'storeFundType']);
+    Route::patch('/admin/fund-types/{id}',     [AdminController::class, 'updateFundType']);
     Route::delete('/admin/fund-types/{id}',    [AdminController::class, 'deleteFundType']);
+    Route::get('/admin/fund-entries',          [ContributionController::class, 'adminFundEntries']);
     Route::post('/admin/members',              [AdminController::class, 'storeMember']);
     Route::patch('/admin/members/{id}',        [AdminController::class, 'updateMember']);
     Route::patch('/admin/members/{id}/roles',  [AdminController::class, 'updateMemberRoles']);
     Route::patch('/admin/members/{id}/reset-password', [AdminController::class, 'resetMemberPassword']);
+    Route::delete('/admin/members/{id}',       [AdminController::class, 'destroyMember']);
 
     // Subscriptions (Who participates in what)
     Route::get('/members/{id}/subscriptions', [MemberController::class, 'subscriptions']);
