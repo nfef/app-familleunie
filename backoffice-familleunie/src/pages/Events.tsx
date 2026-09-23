@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Plus } from 'lucide-react';
-import { getEvents, postEvent, getEventTypes, getMembers, ApiError } from '@/lib/api';
+import { Plus, Eye, Check } from 'lucide-react';
+import { getEvents, postEvent, getEventTypes, getMembers, getEventDetail, postEventContribution, ApiError, type ApiEvent } from '@/lib/api';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Table, THead, Th, TBody, Td, EmptyState } from '@/components/ui/Table';
@@ -79,9 +79,119 @@ function CreateEventDialog({ open, onClose }: { open: boolean; onClose: () => vo
   );
 }
 
+function EventDetailDialog({ event, onClose }: { event: ApiEvent | null; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: ['event-detail', event?.id],
+    queryFn: () => getEventDetail(event!.id),
+    enabled: !!event,
+  });
+  const [amounts, setAmounts] = useState<Record<number, number>>({});
+
+  useEffect(() => {
+    if (data) {
+      setAmounts((prev) => {
+        const next = { ...prev };
+        for (const m of data.pending_members) {
+          if (next[m.id] === undefined) next[m.id] = data.expected_share;
+        }
+        return next;
+      });
+    }
+  }, [data]);
+
+  const mutation = useMutation({
+    mutationFn: (vars: { contributor_id: number; amount: number }) =>
+      postEventContribution({ event_id: event!.id, contributor_id: vars.contributor_id, amount: vars.amount }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['event-detail', event?.id] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      toast.success('Contribution enregistrée');
+    },
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : 'Erreur.'),
+  });
+
+  if (!event) return null;
+
+  return (
+    <Dialog open={!!event} onClose={onClose} title={`${event.event_type?.label ?? 'Événement'} — ${event.member?.full_name ?? ''}`}>
+      {isLoading || !data ? (
+        <div className="py-8 text-center text-sm text-ink-muted">Chargement…</div>
+      ) : (
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-bg-input px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Collecté</p>
+              <p className="mt-1 text-base font-bold text-ink">
+                {formatCFA(data.total_collected)} <span className="text-xs font-medium text-ink-muted">/ {formatCFA(data.expected_total)}</span>
+              </p>
+            </div>
+            <div className="rounded-2xl bg-bg-input px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Contributeurs</p>
+              <p className="mt-1 text-base font-bold text-ink">
+                {data.contributors_count} <span className="text-xs font-medium text-ink-muted">/ {data.active_members_count}</span>
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-ink-muted">Part attendue par membre : <strong className="text-ink">{formatCFA(data.expected_share)}</strong></p>
+
+          {data.event.contributions.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">Ont contribué</p>
+              <div className="max-h-40 space-y-1.5 overflow-y-auto">
+                {data.event.contributions.map((c) => (
+                  <div key={c.id} className="flex items-center justify-between rounded-xl bg-bg-input/60 px-3 py-2 text-sm">
+                    <span className="flex items-center gap-2 font-medium text-ink">
+                      <Check className="h-3.5 w-3.5 text-green-600" />
+                      {c.contributor?.full_name ?? `#${c.contributor_id}`}
+                    </span>
+                    <span className="text-ink-muted">{formatCFA(c.amount)}{c.paid_at ? ` · ${formatDate(c.paid_at)}` : ''}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {data.pending_members.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">En attente</p>
+              <div className="max-h-56 space-y-1.5 overflow-y-auto">
+                {data.pending_members.map((m) => (
+                  <div key={m.id} className="flex items-center gap-2 rounded-xl border border-border px-3 py-2">
+                    <span className="flex-1 truncate text-sm font-medium text-ink">{m.full_name}</span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={amounts[m.id] ?? data.expected_share}
+                      onChange={(e) => setAmounts((prev) => ({ ...prev, [m.id]: Number(e.target.value) }))}
+                      className="w-24 rounded-lg border border-border bg-bg-input px-2 py-1 text-sm text-ink outline-none focus:border-primary"
+                    />
+                    <Button
+                      onClick={() => mutation.mutate({ contributor_id: m.id, amount: amounts[m.id] ?? data.expected_share })}
+                      disabled={mutation.isPending}
+                      className="px-3 py-1.5 text-xs"
+                    >
+                      Enregistrer
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {data.pending_members.length === 0 && data.event.contributions.length > 0 && (
+            <p className="rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-800">Tous les membres actifs ont contribué.</p>
+          )}
+        </div>
+      )}
+    </Dialog>
+  );
+}
+
 export function Events() {
   const { data: events, isLoading } = useQuery({ queryKey: ['events'], queryFn: getEvents });
   const [open, setOpen] = useState(false);
+  const [viewing, setViewing] = useState<ApiEvent | null>(null);
 
   return (
     <div>
@@ -97,6 +207,7 @@ export function Events() {
             <Th>Type</Th>
             <Th>Date</Th>
             <Th>Note</Th>
+            <Th></Th>
           </THead>
           <TBody>
             {isLoading && <EmptyState label="Chargement…" />}
@@ -114,12 +225,22 @@ export function Events() {
                 </Td>
                 <Td>{formatDate(e.occurred_on)}</Td>
                 <Td>{e.note ?? '—'}</Td>
+                <Td>
+                  <button
+                    onClick={() => setViewing(e)}
+                    className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                  >
+                    <Eye className="h-3 w-3" />
+                    Voir
+                  </button>
+                </Td>
               </tr>
             ))}
           </TBody>
         </Table>
       </Card>
       <CreateEventDialog open={open} onClose={() => setOpen(false)} />
+      <EventDetailDialog key={`event-${viewing?.id ?? 'none'}`} event={viewing} onClose={() => setViewing(null)} />
     </div>
   );
 }

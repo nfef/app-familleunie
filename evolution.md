@@ -34,9 +34,14 @@ Liste des manques identifiés dans l'API (`backend-familleunie`) qui bloqueront 
 - **Statut** : fait — `POST`/`PATCH`/`DELETE /admin/event-types`, catégorie (heureux/malheureux), mode de calcul (montant fixe par membre ou enveloppe divisée par le nombre de membres avec `computed_share`)
 
 ## 11. Enregistrer la contribution de chaque membre à un événement
-- **État actuel** : `POST /event-contributions` existe pour enregistrer UNE contribution, mais aucun endpoint pour lister les contributions déjà enregistrées pour un événement donné, ni d'écran back-office pour ça — impossible de suivre qui a déjà contribué à un mariage/décès et combien il reste à collecter
-- **À faire** : `GET /events/{id}` (détail avec contributions chargées) + écran back-office de saisie par membre, avec le montant pré-rempli via `computed_share`
-- **Statut** : non démarré
+- **État actuel** : `GET /events/{id}` renvoie le détail de l'événement (part attendue, total collecté, contributions déjà enregistrées, membres actifs n'ayant pas encore contribué). Écran back-office (`Events.tsx`) avec bouton « Voir » ouvrant le détail : progression collecté/attendu, liste des contributeurs, et enregistrement en un clic par membre en attente (montant pré-rempli via `expected_share`).
+- **Bug corrigé au passage** : `EventController::storeContribution` plantait (500, `meeting_id` non défini) quand la contribution était enregistrée sans `meeting_id`.
+- **Statut** : fait
+
+## 12. Suivi des cotisations par séance (qui a payé / qui manque)
+- **État actuel** : `GET /contributions/report/{meetingId}` existait déjà côté API (détail par type de cotisation + caisses, avec statut payé/échec par membre) mais n'était consommé nulle part côté back-office — seul un résumé agrégé par réunion était visible. Écran back-office (`Contributions.tsx`) avec bouton « Voir » par réunion, ouvrant le détail par type de cotisation avec la liste des membres payés/en attente.
+- **Bug corrigé au passage** : `MemberController::updateSubscriptions` plantait (500, `suspension_reason` non défini) quand l'abonnement était mis à jour sans motif de suspension.
+- **Statut** : fait
 
 ---
 

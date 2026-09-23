@@ -162,6 +162,11 @@ export const postFundEntry = (data: { fund_type_id: number; member_id?: number |
   apiFetch('/api/fund-entries', { method: 'POST', body: JSON.stringify(data) });
 // Pas d'endpoint pour lister TOUS les mouvements de caisse (seulement /funds/me, propre à l'utilisateur connecté) — voir evolution.md
 
+export interface MeetingReportDetail { user_id: number; full_name: string; parts?: number; amount: number; status: 'paid' | 'failure'; paid_at?: string | null }
+export interface MeetingReportItem { type: 'contribution' | 'fund'; label: string; details: MeetingReportDetail[]; stats: { paid: number; failure?: number; total?: number } }
+export interface MeetingReport { meeting: Meeting; report: MeetingReportItem[] }
+export const getMeetingReport = (meetingId: number) => apiFetch<MeetingReport>(`/api/contributions/report/${meetingId}`);
+
 // ─── Sanctions ─────────────────────────────────────────────────────────────
 export const getSanctions = () => apiFetch<Sanction[]>('/api/sanctions');
 export const postSanction = (data: { user_id: number; meeting_id?: number; label: string; amount: number }) =>
@@ -187,6 +192,20 @@ export const deleteEventType = (id: number) =>
 export const getEvents = () => apiFetch<ApiEvent[]>('/api/events');
 export const postEvent = (data: { event_type_id: number; occurred_on: string; custom_amount?: number; note?: string; member_id?: number }) =>
   apiFetch<ApiEvent>('/api/events', { method: 'POST', body: JSON.stringify(data) });
+
+export interface EventContributionRow { id: number; event_id: number; contributor_id: number; amount: number; paid_at: string | null; contributor?: { id: number; full_name: string } }
+export interface EventDetail {
+  event: ApiEvent & { contributions: EventContributionRow[] };
+  expected_share: number;
+  expected_total: number;
+  total_collected: number;
+  contributors_count: number;
+  active_members_count: number;
+  pending_members: { id: number; full_name: string }[];
+}
+export const getEventDetail = (id: number) => apiFetch<EventDetail>(`/api/events/${id}`);
+export const postEventContribution = (data: { event_id: number; contributor_id?: number; amount: number; meeting_id?: number }) =>
+  apiFetch<EventContributionRow>('/api/event-contributions', { method: 'POST', body: JSON.stringify(data) });
 
 // ─── Tontine / Payouts ─────────────────────────────────────────────────────
 export const getPayouts = () => apiFetch<TontinePayout[]>('/api/payouts');

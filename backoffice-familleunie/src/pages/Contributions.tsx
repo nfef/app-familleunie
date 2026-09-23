@@ -4,8 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Plus, Users } from 'lucide-react';
-import { getContributionsSummary, postContribution, getMembers, getMeetings, getContributionTypes, ApiError } from '@/lib/api';
+import { Plus, Users, Eye, Check, X } from 'lucide-react';
+import { getContributionsSummary, postContribution, getMembers, getMeetings, getContributionTypes, getMeetingReport, ApiError, type MeetingContributionSummary } from '@/lib/api';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Table, THead, Th, TBody, Td, EmptyState } from '@/components/ui/Table';
@@ -83,9 +83,65 @@ function CreateContributionDialog({ open, onClose }: { open: boolean; onClose: (
   );
 }
 
+function MeetingReportDialog({ meeting, onClose }: { meeting: MeetingContributionSummary | null; onClose: () => void }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['meeting-report', meeting?.meeting_id],
+    queryFn: () => getMeetingReport(meeting!.meeting_id),
+    enabled: !!meeting,
+  });
+
+  if (!meeting) return null;
+
+  return (
+    <Dialog
+      open={!!meeting}
+      onClose={onClose}
+      title={`Rapport — ${meeting.meeting ? formatDate(meeting.meeting.meeting_date) : `#${meeting.meeting_id}`}`}
+    >
+      {isLoading || !data ? (
+        <div className="py-8 text-center text-sm text-ink-muted">Chargement…</div>
+      ) : (
+        <div className="max-h-[60vh] space-y-5 overflow-y-auto pr-1">
+          {data.report.length === 0 && <EmptyState label="Aucune donnée pour cette réunion." />}
+          {data.report.map((item, idx) => (
+            <div key={idx} className="rounded-2xl border border-border p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm font-bold text-ink">{item.label}</p>
+                {item.type === 'contribution' ? (
+                  <span className="text-xs font-semibold text-ink-muted">
+                    {item.stats.paid} payé(s) / {item.stats.failure ?? 0} en attente
+                  </span>
+                ) : (
+                  <span className="text-xs font-semibold text-ink-muted">{item.stats.paid} mouvement(s)</span>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                {item.details.map((d) => (
+                  <div key={d.user_id} className="flex items-center justify-between rounded-xl bg-bg-input/60 px-3 py-2 text-sm">
+                    <span className="flex items-center gap-2 font-medium text-ink">
+                      {d.status === 'paid' ? (
+                        <Check className="h-3.5 w-3.5 text-green-600" />
+                      ) : (
+                        <X className="h-3.5 w-3.5 text-red-500" />
+                      )}
+                      {d.full_name}
+                    </span>
+                    <span className="text-ink-muted">{formatCFA(d.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Dialog>
+  );
+}
+
 export function Contributions() {
   const { data: summary, isLoading } = useQuery({ queryKey: ['contributions-summary'], queryFn: getContributionsSummary });
   const [open, setOpen] = useState(false);
+  const [viewing, setViewing] = useState<MeetingContributionSummary | null>(null);
 
   return (
     <div>
@@ -100,6 +156,7 @@ export function Contributions() {
             <Th>Réunion</Th>
             <Th>Total collecté</Th>
             <Th>Membres ayant cotisé</Th>
+            <Th></Th>
           </THead>
           <TBody>
             {isLoading && <EmptyState label="Chargement…" />}
@@ -114,12 +171,22 @@ export function Contributions() {
                     {s.members_count}
                   </span>
                 </Td>
+                <Td>
+                  <button
+                    onClick={() => setViewing(s)}
+                    className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                  >
+                    <Eye className="h-3 w-3" />
+                    Voir
+                  </button>
+                </Td>
               </tr>
             ))}
           </TBody>
         </Table>
       </Card>
       <CreateContributionDialog open={open} onClose={() => setOpen(false)} />
+      <MeetingReportDialog key={`report-${viewing?.meeting_id ?? 'none'}`} meeting={viewing} onClose={() => setViewing(null)} />
     </div>
   );
 }
