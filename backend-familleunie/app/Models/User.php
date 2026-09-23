@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasAuditTrail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -21,9 +22,13 @@ class User extends Authenticatable
         'phone',
         'password',
         'roles',
+        'member_status',
+        'status_note',
         'avatar_url',
         'must_change_password',
     ];
+
+    public const MEMBER_STATUSES = ['active', 'pause', 'exclu', 'demissionnaire'];
 
     protected $hidden = [
         'password',
@@ -43,6 +48,16 @@ class User extends Authenticatable
     public function subscriptions(): HasMany
     {
         return $this->hasMany(ContributionSubscription::class);
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('member_status', 'active');
+    }
+
+    public function isActiveMember(): bool
+    {
+        return $this->member_status === 'active';
     }
 
     protected function casts(): array

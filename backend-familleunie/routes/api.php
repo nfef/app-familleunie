@@ -109,6 +109,7 @@ Route::middleware(['auth:sanctum', 'force.password.change'])->group(function () 
     Route::patch('/admin/members/{id}',        [AdminController::class, 'updateMember']);
     Route::patch('/admin/members/{id}/roles',  [AdminController::class, 'updateMemberRoles']);
     Route::patch('/admin/members/{id}/reset-password', [AdminController::class, 'resetMemberPassword']);
+    Route::patch('/admin/members/{id}/status', [AdminController::class, 'updateMemberStatus']);
     Route::delete('/admin/members/{id}',       [AdminController::class, 'destroyMember']);
 
     // Subscriptions (Who participates in what)

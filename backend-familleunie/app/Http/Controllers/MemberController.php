@@ -20,7 +20,7 @@ class MemberController extends Controller
     public function index(): JsonResponse
     {
         $members = User::orderBy('full_name')
-            ->get(['id', 'full_name', 'email', 'phone', 'roles', 'avatar_url', 'created_at']);
+            ->get(['id', 'full_name', 'email', 'username', 'phone', 'roles', 'member_status', 'status_note', 'avatar_url', 'created_at']);
 
         return response()->json($members);
     }
@@ -43,8 +43,11 @@ class MemberController extends Controller
             'id'              => $member->id,
             'full_name'       => $member->full_name,
             'email'           => $member->email,
+            'username'        => $member->username,
             'phone'           => $member->phone,
             'roles'           => $member->roles,
+            'member_status'   => $member->member_status,
+            'status_note'     => $member->status_note,
             'avatar_url'      => $member->avatar_url,
             'avatar_full_url' => $member->avatar_full_url,
             'created_at'      => $member->created_at,

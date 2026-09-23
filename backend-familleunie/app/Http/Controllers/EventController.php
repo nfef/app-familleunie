@@ -44,9 +44,7 @@ class EventController extends Controller
      */
     public function types(): JsonResponse
     {
-        // "Membre actif" = tous les membres actuellement enregistrés (les membres supprimés
-        // sont déjà exclus par le soft delete). À ajuster si une notion plus fine est souhaitée.
-        $activeMembersCount = User::count();
+        $activeMembersCount = User::active()->count();
 
         $types = EventType::all()->map(function (EventType $type) use ($activeMembersCount) {
             $type->computed_share = ($type->amount_mode === 'envelope' && $activeMembersCount > 0)

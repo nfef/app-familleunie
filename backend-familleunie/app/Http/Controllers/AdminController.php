@@ -35,6 +35,7 @@ class AdminController extends Controller
         $tontineBalance = MemberContribution::sum('total_amount') - TontinePayout::where('status', 'paid')->sum('amount');
         $eventsBalance  = EventContribution::sum('amount');
         $membersCount   = User::count();
+        $activeMembersCount = User::active()->count();
 
         // Répartition des cotisations par cycle
         $byCycle = \App\Models\Cycle::orderByDesc('start_date')->get(['id', 'label', 'is_active'])
@@ -67,6 +68,7 @@ class AdminController extends Controller
             'tontine_balance' => $tontineBalance,
             'events_balance'  => $eventsBalance,
             'members_count'   => $membersCount,
+            'active_members_count' => $activeMembersCount,
             'by_cycle'        => $byCycle,
             'monthly_trend'   => $monthlyTrend,
         ]);
@@ -455,6 +457,39 @@ class AdminController extends Controller
         $member->delete();
 
         return response()->json(['message' => 'Membre supprimé.']);
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/admin/members/{id}/status",
+     *     summary="Changer le statut d'un membre (actif/pause/exclu/démissionnaire) (ADMIN)",
+     *     tags={"Admin"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             required={"member_status"},
+     *             @OA\Property(property="member_status", type="string", enum={"active","pause","exclu","demissionnaire"}),
+     *             @OA\Property(property="status_note", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Statut mis à jour")
+     * )
+     */
+    public function updateMemberStatus(Request $request, int $id): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN']);
+
+        $member = User::findOrFail($id);
+
+        $data = $request->validate([
+            'member_status' => ['required', 'in:' . implode(',', User::MEMBER_STATUSES)],
+            'status_note'   => ['nullable', 'string'],
+        ]);
+
+        $member->update($data);
+
+        return response()->json(['message' => 'Statut mis à jour.', 'user' => $member]);
     }
 
     /**

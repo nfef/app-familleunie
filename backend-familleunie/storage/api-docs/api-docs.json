@@ -522,6 +522,61 @@
                 ]
             }
         },
+        "/api/admin/members/{id}/status": {
+            "patch": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Changer le statut d'un membre (actif/pause/exclu/démissionnaire) (ADMIN)",
+                "operationId": "a6e1a3f81aa40859e809019d73a7ce0f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "member_status"
+                                ],
+                                "properties": {
+                                    "member_status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "active",
+                                            "pause",
+                                            "exclu",
+                                            "demissionnaire"
+                                        ]
+                                    },
+                                    "status_note": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Statut mis à jour"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/api/admin/members/{id}/roles": {
             "patch": {
                 "tags": [
