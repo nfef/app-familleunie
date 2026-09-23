@@ -235,6 +235,39 @@ class AdminController extends Controller
 
     /**
      * @OA\Patch(
+     *     path="/api/admin/members/{id}/reset-password",
+     *     summary="Réinitialiser le mot de passe d'un membre (ADMIN)",
+     *     tags={"Admin"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Mot de passe réinitialisé")
+     * )
+     */
+    public function resetMemberPassword(Request $request, int $id): JsonResponse
+    {
+        $this->requireRole($request, ['ADMIN']);
+
+        $member = User::findOrFail($id);
+
+        $temporaryPassword = \Illuminate\Support\Str::password(12);
+
+        $member->update([
+            'password'             => \Illuminate\Support\Facades\Hash::make($temporaryPassword),
+            'must_change_password' => true,
+        ]);
+
+        // Déconnecte toutes les sessions actives de ce membre (l'ancien mot de passe n'est plus valable).
+        $member->tokens()->delete();
+
+        return response()->json([
+            'message'             => 'Mot de passe réinitialisé avec succès.',
+            'temporary_password'  => $temporaryPassword,
+            'user'                => $member,
+        ]);
+    }
+
+    /**
+     * @OA\Patch(
      *     path="/api/admin/members/{id}",
      *     summary="Modifier les informations d'un membre (ADMIN)",
      *     tags={"Admin"},
