@@ -115,6 +115,8 @@ export const updateMember = (id: number, data: { full_name?: string; email?: str
   apiFetch<{ message: string; user: Member }>(`/api/admin/members/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
 export const updateMemberRoles = (id: number, roles: string[]) =>
   apiFetch(`/api/admin/members/${id}/roles`, { method: 'PATCH', body: JSON.stringify({ roles }) });
+export const resetMemberPassword = (id: number) =>
+  apiFetch<{ message: string; temporary_password: string; user: Member }>(`/api/admin/members/${id}/reset-password`, { method: 'PATCH' });
 export const getMemberSubscriptions = (id: number) => apiFetch<Subscription[]>(`/api/members/${id}/subscriptions`);
 export const updateMemberSubscriptions = (id: number, subscriptions: unknown[]) =>
   apiFetch(`/api/members/${id}/subscriptions`, { method: 'POST', body: JSON.stringify({ subscriptions }) });

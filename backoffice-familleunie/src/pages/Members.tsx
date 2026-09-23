@@ -4,8 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Copy, ShieldCheck, UserPlus } from 'lucide-react';
-import { createMember, getMembers, updateMember, updateMemberRoles, ApiError, type Member } from '@/lib/api';
+import { Copy, KeyRound, ShieldCheck, TriangleAlert, UserPlus } from 'lucide-react';
+import { createMember, getMembers, resetMemberPassword, updateMember, updateMemberRoles, ApiError, type Member } from '@/lib/api';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card } from '@/components/ui/Card';
 import { Table, THead, Th, TBody, Td, EmptyState } from '@/components/ui/Table';
@@ -254,11 +254,73 @@ function EditMemberDialog({ member, onClose }: { member: Member | null; onClose:
   );
 }
 
+function ResetPasswordDialog({ member, onClose }: { member: Member | null; onClose: () => void }) {
+  const [result, setResult] = useState<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: () => resetMemberPassword(member!.id),
+    onSuccess: (res) => setResult(res.temporary_password),
+    onError: (err) => toast.error(err instanceof ApiError ? err.message : 'Erreur.'),
+  });
+
+  const handleClose = () => {
+    setResult(null);
+    onClose();
+  };
+
+  const copyPassword = () => {
+    if (!result) return;
+    navigator.clipboard.writeText(result);
+    toast.success('Mot de passe copié');
+  };
+
+  if (!member) return null;
+
+  return (
+    <Dialog open={!!member} onClose={handleClose} title={result ? 'Mot de passe réinitialisé' : 'Réinitialiser le mot de passe'}>
+      {result ? (
+        <div className="space-y-4">
+          <div>
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+              Nouveau mot de passe temporaire — à communiquer maintenant, non récupérable ensuite
+            </p>
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-bg-input px-4 py-3">
+              <code className="flex-1 text-sm font-semibold text-ink">{result}</code>
+              <button onClick={copyPassword} className="text-ink-muted hover:text-primary">
+                <Copy className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <Button onClick={handleClose} className="w-full">Terminer</Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 rounded-2xl bg-amber-50 p-4">
+            <TriangleAlert className="h-5 w-5 shrink-0 text-amber-600" />
+            <p className="text-sm text-amber-800">
+              Un nouveau mot de passe temporaire sera généré pour <strong>{member.full_name}</strong>, et
+              ses sessions actives seront déconnectées. À sa prochaine connexion, il devra en définir un
+              nouveau avant de pouvoir continuer.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="ghost" onClick={handleClose} className="flex-1">Annuler</Button>
+            <Button onClick={() => mutation.mutate()} disabled={mutation.isPending} className="flex-1">
+              {mutation.isPending ? 'Réinitialisation…' : 'Confirmer'}
+            </Button>
+          </div>
+        </div>
+      )}
+    </Dialog>
+  );
+}
+
 export function Members() {
   const { data: members, isLoading } = useQuery({ queryKey: ['members'], queryFn: getMembers });
   const [createOpen, setCreateOpen] = useState(false);
   const [editingRoles, setEditingRoles] = useState<Member | null>(null);
   const [editingInfo, setEditingInfo] = useState<Member | null>(null);
+  const [resettingPassword, setResettingPassword] = useState<Member | null>(null);
 
   return (
     <div>
@@ -312,6 +374,13 @@ export function Members() {
                     >
                       Rôles
                     </button>
+                    <button
+                      onClick={() => setResettingPassword(m)}
+                      className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                    >
+                      <KeyRound className="h-3 w-3" />
+                      Mot de passe
+                    </button>
                   </div>
                 </Td>
               </tr>
@@ -323,6 +392,7 @@ export function Members() {
       <CreateMemberDialog open={createOpen} onClose={() => setCreateOpen(false)} />
       <EditMemberDialog member={editingInfo} onClose={() => setEditingInfo(null)} />
       <RolesDialog member={editingRoles} onClose={() => setEditingRoles(null)} />
+      <ResetPasswordDialog member={resettingPassword} onClose={() => setResettingPassword(null)} />
     </div>
   );
 }
