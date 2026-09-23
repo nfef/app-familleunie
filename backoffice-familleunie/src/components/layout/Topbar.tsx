@@ -22,11 +22,9 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-bg-card/90 px-6 py-4 backdrop-blur">
-      <button onClick={onMenuClick} className="rounded-lg p-2 text-ink-muted hover:bg-bg-input lg:hidden">
+      <button onClick={onMenuClick} className="rounded-lg p-2 text-ink-muted hover:bg-bg-input" aria-label="Réduire/agrandir le menu">
         <Menu className="h-5 w-5" />
       </button>
-
-      <div className="hidden lg:block" />
 
       <div className="relative">
         <button
