@@ -70,6 +70,7 @@ Route::middleware(['auth:sanctum', 'force.password.change'])->group(function () 
     Route::get('/loans', [LoanController::class, 'index']);
     Route::post('/loans', [LoanController::class, 'store']);
     Route::patch('/loans/{id}/pay', [LoanController::class, 'markAsPaid']);
+    Route::post('/loans/{id}/renew', [LoanController::class, 'renew']);
     Route::delete('/loans/{id}', [LoanController::class, 'destroy']);
 
     // Rapports (Reports)

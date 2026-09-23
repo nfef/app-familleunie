@@ -33,9 +33,9 @@ class ReportController extends Controller
         // Entrées : Sanctions payées
         $sanctions = Sanction::whereYear('paid_at', $year)->where('status', 'paid')->sum('amount');
         
-        // Prêts
-        $loansDisbursed = Loan::whereYear('created_at', $year)->sum('amount');
-        $loansRepaidPrincipal = Loan::whereYear('paid_at', $year)->where('status', 'paid')->sum('amount');
+        // Prêts (les reconductions — parent_loan_id renseigné — ne sont pas un nouveau décaissement)
+        $loansDisbursed = Loan::whereYear('created_at', $year)->whereNull('parent_loan_id')->sum('amount');
+        $loansRepaidPrincipal = Loan::whereYear('paid_at', $year)->sum('repaid_amount');
         $loansRepaidInterest = Loan::whereYear('paid_at', $year)->where('status', 'paid')->sum('interest');
 
         return response()->json([
@@ -82,8 +82,8 @@ class ReportController extends Controller
         $sanctionsPending = Sanction::where('user_id', $userId)->where('status', 'pending')->sum('amount');
         $sanctionsList = Sanction::where('user_id', $userId)->where('status', 'pending')->get();
         
-        // Prêts
-        $loansActive = Loan::where('user_id', $userId)->where('status', '!=', 'paid')->get();
+        // Prêts (un prêt "renewed" est remplacé par sa reconduction, qui seule compte comme actif)
+        $loansActive = Loan::where('user_id', $userId)->where('status', 'pending')->get();
         $payoutsReceived = TontinePayout::where('beneficiary_id', $userId)->where('status', 'paid')->whereYear('updated_at', $year)->sum('amount');
 
         // Fonds / Caisses (Assurance, Fonds de caisse, etc.)
